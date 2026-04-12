@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Anime Ranking Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* --- CYBERPUNK VARIABLES --- */
+:root {
+    --bg-void: #050505;
+    --neon-cyan: #00f3ff;
+    --neon-pink: #ff0055;
+    --neon-green: #0aff0a;
+    --neon-yellow: #fcee0a;
+    --text-main: #e0e6ed;
+}
+
+/* --- RESET & BODY --- */
+::-webkit-scrollbar { width: 6px; display: none; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--neon-cyan); }
+
+body { 
+    font-family: 'Rajdhani', sans-serif; 
+    background-color: var(--bg-void);
+    color: var(--text-main); 
+    margin: 0; padding: 0;
+    height: 100vh; /* Fixed height is crucial */
+    width: 100vw;
+    overflow: hidden; /* No body scroll */
+    display: flex; flex-direction: column;
+    background-size: cover;          
+    background-position: center;     
+    background-attachment: fixed;    
+    background-repeat: no-repeat;    
+}
+
+/* --- BACKGROUND FX --- */
+.cyber-grid-bg {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+    background-image: 
+        linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none;
+}
+body::after {
+    content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+    z-index: 9999; background-size: 100% 2px; pointer-events: none; opacity: 0.4;
+}
+
+/* --- TOP BAR --- */
+.top-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px 30px; background: rgba(0,0,0,0);
+    border-bottom: 2px solid var(--neon-yellow);
+    box-shadow: 0 0 20px rgba(252, 238, 10, 0.1);
+    flex-shrink: 0; /* Prevents shrinking */
+    z-index: 1000;
+}
+h1 {
+    font-family: 'Orbitron'; font-weight: 900; color: #fff; margin: 0; font-size: 1.5rem;
+    text-shadow: 0 0 10px var(--neon-yellow); letter-spacing: 2px;
+}
+.back-btn {
+    text-decoration: none; font-family: 'Orbitron'; font-weight: 700;
+    color: var(--neon-cyan); border: 1px solid var(--neon-cyan);
+    padding: 6px 16px; text-transform: uppercase; transition: 0.2s; font-size: 0.9rem;
+    background: transparent; cursor: pointer;
+}
+.back-btn:hover { background: var(--neon-cyan); color: #000; }
+
+/* --- MAIN LAYOUT --- */
+.container {
+    display: flex; gap: 20px; padding: 20px; 
+    flex: 1; /* Takes remaining height */
+    overflow: hidden; /* Contains the columns */
+    box-sizing: border-box;
+    width: 100%;
+}
+
+/* --- COLUMNS --- */
+.col {
+    flex: 1; 
+    display: flex; flex-direction: column;
+    background: rgba(20, 20, 25, 0.75);
+    border: 1px solid #333;
+    clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    min-height: 0; /* Critical for nested flex scrolling */
+    overflow: hidden; /* Forces scroll to happen on children */
+}
+.col-header {
+    background: rgba(0,0,0,0.6); padding: 12px; text-align: center;
+    font-family: 'Orbitron'; letter-spacing: 2px; font-weight: 700;
+    border-bottom: 1px solid #333; font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.col-rank { border-top: 4px solid var(--neon-yellow); }
+.col-rank .col-header { color: var(--neon-yellow); }
+.col-inbox { border-top: 4px solid var(--neon-green); }
+.col-inbox .col-header { color: var(--neon-green); }
+
+/* --- SCROLLABLE AREA --- */
+.list-area {
+    flex: 1; /* Fills the rest of the column */
+    overflow-y: auto; /* Scrollbar appears HERE */
+    padding: 10px;
+    display: flex; flex-direction: column; gap: 8px;
+    scroll-behavior: smooth;
+    position: relative;
+}
+
+/* --- RANKING CARD --- */
+.rank-card {
+    background: rgba(0, 0, 0, 0.6); 
+    border: 1px solid #333; border-left: 3px solid #555;
+    padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;
+    cursor: grab; transition: transform 0.1s, box-shadow 0.2s, background 0.2s, border-color 0.2s;
+    user-select: none;
+    touch-action: pan-y; /* Allows vertical scroll by default */
+    position: relative;
+}
+.rank-card:hover { border-color: #666; background: rgba(0,0,0,0.8); }
+
+/* Visual feedback when dragging */
+.rank-card.dragging { 
+    opacity: 0.9; 
+    border: 1px dashed var(--neon-cyan); 
+    background: #1a1a1a;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    z-index: 999;
+}
+/* Visual feedback when holding (preparing to drag) */
+.rank-card.prepare-drag {
+    border-color: var(--neon-yellow);
+    transform: scale(0.98);
+}
+
+.rank-index {
+    font-family: 'Orbitron'; font-size: 1.4rem; color: #444; font-weight: 900;
+    width: 35px; margin-right: 10px; text-align: right; pointer-events: none;
+}
+.col-rank .rank-card .rank-index { color: var(--neon-yellow); text-shadow: 0 0 5px rgba(252, 238, 10, 0.5); }
+
+.card-info { flex: 1; display: flex; align-items: center; gap: 10px; pointer-events: none; overflow: hidden; }
+.card-name { font-weight: 700; font-size: 1rem; color: #fff; text-transform: uppercase; margin-right: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* --- STAT SQUARES --- */
+.stats-grid { display: flex; gap: 4px; flex-shrink: 0; }
+.stat-box {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 40px; height: 32px; border: 1px solid; position: relative;
+    background: rgba(0,0,0,0.9);
+}
+.stat-box span { font-family: 'Orbitron'; font-weight: 700; font-size: 12px; color: #fff; }
+.stat-box label { font-size: 7px; text-transform: uppercase; position: absolute; bottom: 1px; opacity: 0.7; }
+
+.sb-green { border-color: var(--neon-green); box-shadow: inset 0 0 5px rgba(10,255,10,0.2); }
+.sb-green label { color: var(--neon-green); }
+.sb-blue { border-color: var(--neon-cyan); box-shadow: inset 0 0 5px rgba(0,243,255,0.2); }
+.sb-blue label { color: var(--neon-cyan); }
+.sb-red { border-color: var(--neon-pink); box-shadow: inset 0 0 5px rgba(255,0,85,0.2); }
+.sb-red label { color: var(--neon-pink); }
+.sb-gold { border-color: var(--neon-yellow); box-shadow: inset 0 0 5px rgba(252,238,10,0.2); }
+.sb-gold label { color: var(--neon-yellow); span { color: var(--neon-yellow); } }
+
+.save-status {
+    position: fixed; bottom: 20px; right: 20px;
+    background: #000; color: var(--neon-green); border: 1px solid var(--neon-green);
+    padding: 10px 20px; font-family: 'Orbitron'; display: none; z-index: 2000;
+}
+
+/* --- EDITABLE RATING INPUT --- */
+.rating-input {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: var(--neon-yellow);
+    font-family: 'Orbitron';
+    font-weight: 700;
+    font-size: 12px;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    pointer-events: auto;
+    user-select: text; 
+    cursor: text;
+}
+/* Chrome/Safari: Remove spinner */
+.rating-input::-webkit-outer-spin-button,
+.rating-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.stat-box.sb-gold {
+    cursor: text;
+}
+</style>
+</head>
+<body>
+
+<div class="cyber-grid-bg"></div>
+
+<div class="top-nav">
+    <h1><span style="color:var(--neon-cyan)">//</span> RANKING</h1>
+    <a href="../" class="back-btn">Back</a>
+</div>
+
+<div class="container">
+    <div class="col col-rank">
+        <div class="col-header">RANKED</div>
+        <div class="list-area" id="rankedList" ondragover="handleDragOver(event)" ondrop="handleDrop(event)"></div>
+    </div>
+
+    <div class="col col-inbox">
+        <div class="col-header">OUTSTANDING</div>
+        <div class="list-area" id="unrankedList" ondragover="handleDragOver(event)" ondrop="handleDrop(event)"></div>
+    </div>
+</div>
+
+<div id="saveStatus" class="save-status">SAVED</div>
+
+<script>
+const DELIM = '^';
+let allShows = []; 
+let rankedNames = [];
+let manualRatings = {}; // NEW: Store ratings in an object
+
+/* --- INIT --- */
+async function init() {
+    // Background
+    fetch('/bg').then(r => r.ok ? r.text() : null).then(d => { 
+        if(d) document.body.style.backgroundImage = `url(${d})`; 
+    }).catch(()=>{});
+
+    await loadData();
+    await loadRanking();
+    await loadRatings(); // NEW: Load ratings from server
+    render();
+}
+
+async function loadData() {
+    try {
+        const res = await fetch('/data');
+        const text = await res.text();
+        allShows = text.split('\n').map(l => l.trim()).filter(Boolean).map(parseLine).filter(Boolean);
+        allShows = allShows.filter(isGreenFinished);
+    } catch (e) { console.error("Data Error", e); }
+}
+
+async function loadRanking() {
+    try {
+        const res = await fetch('/ranking.txt'); 
+        if(res.ok) {
+            const text = await res.text();
+            rankedNames = text.split('\n').map(n => n.trim()).filter(Boolean);
+        }
+    } catch (e) {}
+}
+
+// NEW: Load Ratings JSON from server
+async function loadRatings() {
+    try {
+        const res = await fetch('/ratings.json');
+        if(res.ok) {
+            manualRatings = await res.json();
+        }
+    } catch (e) { console.log("No existing ratings or error loading."); }
+}
+
+/* --- LOGIC --- */
+function isGreenFinished(show) {
+    let globalOffset = 0;
+    let greenFinished = true;
+    let hasGreen = false;
+
+    show.seasons.forEach((cRaw, i) => {
+        if (cRaw === '?' || cRaw === 0 || cRaw === '0') return; // Ignore Upcoming
+        
+        const count = parseInt(cRaw.toString().replace('+',''));
+        if (isNaN(count) || count <= 0) return;
+
+        const color = show.colors[i] || '';
+        
+        if (color === 'glow-green') {
+            hasGreen = true;
+            if (show.watched < globalOffset + count) greenFinished = false;
+        }
+        globalOffset += count;
+    });
+
+    return hasGreen && greenFinished;
+}
+
+function getShowStats(show) {
+    let greenS = 0, greenEps = 0, blueEps = 0, redEps = 0;
+    
+    // Variables for weighted calculation
+    let weightedSum = 0;
+    let totalWeight = 0;
+
+    show.seasons.forEach((cRaw, i) => {
+        // Validation (Skip empty/upcoming)
+        if (cRaw === '?' || cRaw === 0 || cRaw === '0') return;
+        
+        const count = parseInt(cRaw.toString().replace('+', ''));
+        if (isNaN(count) || count <= 0) return;
+
+        const color = show.colors[i] || '';
+        const rating = show.ratings[i] || 0;
+
+        // 1. Update Counts (Existing Logic)
+        if (color === 'glow-green') { greenS++; greenEps += count; }
+        if (color === 'glow-blue') { blueEps += count; }
+        if (color === 'glow-red') { redEps += count; }
+
+        // 2. Calculate Weighted Rating
+        if (rating > 0) {
+            // Rule: Movies (Blue) count as weight 4, everything else uses episode count
+            const weight = (color === 'glow-blue') ? 4 : count;
+
+            weightedSum += (rating * weight);
+            totalWeight += weight;
+        }
+    });
+
+    // Final Division
+    const avgRating = totalWeight > 0 ? (weightedSum / totalWeight).toFixed(1) : '-';
+
+    return { greenS, greenEps, blueEps, redEps, avgRating };
+}
+
+function parseLine(line) {
+    if (!line.includes('\\')) return null;
+    let parts = line.includes(DELIM) ? line.split(DELIM) : line.split('?');
+    const [nameAndSeasons, watchedPart, rewatchPart, ratingPart, titlePart, colorPart, sourcePart] = parts;
+    const [name, seasonStr] = nameAndSeasons.split('\\');
+    if (!seasonStr) return null;
+    return {
+        name: name, seasons: seasonStr.split('x').map(s => (s === '?' ? '?' : s)), 
+        watched: Number(watchedPart || 0),
+        ratings: (ratingPart || '').split('x').map(Number), 
+        colors: (colorPart || '').split('|')
+    };
+}
+
+/* --- RENDER --- */
+function render() {
+    const rList = document.getElementById('rankedList');
+    const uList = document.getElementById('unrankedList');
+    rList.innerHTML = ''; uList.innerHTML = '';
+
+    const rObjs = [];
+    const uObjs = [];
+
+    rankedNames.forEach(n => {
+        const s = allShows.find(x => x.name === n);
+        if (s) rObjs.push(s);
+    });
+    allShows.forEach(s => {
+        if (!rankedNames.includes(s.name)) uObjs.push(s);
+    });
+
+    rObjs.forEach((s, i) => rList.appendChild(createCard(s, i+1)));
+    uObjs.forEach(s => uList.appendChild(createCard(s, null)));
+}
+
+function createCard(show, rank) {
+    const st = getShowStats(show);
+    
+    // NEW: Retrieve manual rating from server object instead of LocalStorage
+    // Priority: Manual Server Rating -> Calculated Average -> Empty
+    const serverRating = manualRatings[show.name];
+    const displayRating = serverRating ? serverRating : (st.avgRating === '-' ? '' : st.avgRating);
+
+    const div = document.createElement('div');
+    div.className = 'rank-card';
+    div.dataset.name = show.name;
+    
+    // --- DRAG EVENTS ---
+    div.draggable = true;
+    div.ondragstart = handleDragStart; // We will update this function below too
+    div.addEventListener('touchstart', handleTouchStart, {passive: false});
+    div.addEventListener('touchmove', handleTouchMove, {passive: false});
+    div.addEventListener('touchend', handleTouchEnd);
+    div.addEventListener('contextmenu', e => e.preventDefault());
+
+    div.innerHTML = `
+    <div class="rank-index">${rank ? rank : ''}</div>
+        <div class="card-info">
+            <div class="card-name">${show.name}</div>
+            <div class="stats-grid">
+                <div class="stat-box sb-green"><span>${st.greenS}</span><label>SNS</label></div>
+                <div class="stat-box sb-green"><span>${st.greenEps}</span><label>EPS</label></div>
+                <div class="stat-box sb-blue"><span>${st.blueEps}</span><label>MOV</label></div>
+                <div class="stat-box sb-red"><span>${st.redEps}</span><label>SPC</label></div>
+                
+                <div class="stat-box sb-gold">
+                    <input 
+                        type="number" 
+                        step="0.1" 
+                        class="rating-input" 
+                        value="${displayRating}" 
+                        placeholder="-"
+                        
+                        onmousedown="event.stopPropagation();"
+                        ontouchstart="event.stopPropagation();"
+                        onfocus="this.closest('.rank-card').setAttribute('draggable', 'false');"
+                        onblur="this.closest('.rank-card').setAttribute('draggable', 'true'); saveManualRating(this, '${show.name}')"
+                        onchange="saveManualRating(this, '${show.name}')"
+                    >
+                    <label>RTG</label>
+                </div>
+
+            </div>
+        </div>
+    `;
+    return div;
+}
+
+/* --- DRAG & DROP: MOUSE --- */
+function handleDragStart(e) {
+    // If the target is the Input box, DO NOT START DRAGGING
+    if (e.target.tagName === 'INPUT') {
+        e.preventDefault();
+        return;
+    }
+
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', '');
+    e.currentTarget.classList.add('dragging');
+}
+function handleDragOver(e) {
+    e.preventDefault();
+    const list = e.target.closest('.list-area');
+    if(!list) return;
+    const afterEl = getDragAfterElement(list, e.clientY);
+    const dragging = document.querySelector('.dragging');
+    if(dragging) {
+        if(afterEl == null) list.appendChild(dragging);
+        else list.insertBefore(dragging, afterEl);
+    }
+}
+function handleDrop(e) {
+    e.preventDefault();
+    const dragging = document.querySelector('.dragging');
+    if(dragging) { dragging.classList.remove('dragging'); saveRankingOrder(); }
+}
+
+/* --- DRAG & DROP: TOUCH (HOLD TO DRAG) --- */
+let touchItem = null;
+let touchTimer = null;
+let isTouchDragging = false;
+let cloneItem = null; // Visual ghost
+
+function handleTouchStart(e) {
+    // If touching the input, ignore completely (let the input handle focus)
+    if (e.target.tagName === 'INPUT') return;
+
+    // 1. Reset
+    isTouchDragging = false;
+    touchItem = e.currentTarget;
+    
+    // 2. Start Timer for "Hold"
+    touchTimer = setTimeout(() => {
+        isTouchDragging = true;
+        touchItem.classList.add('dragging');
+        if(navigator.vibrate) navigator.vibrate(50); 
+    }, 400); 
+}
+
+function handleTouchMove(e) {
+    if (!isTouchDragging) {
+        // User moved finger BEFORE timer finished -> Cancel Timer -> Normal Scroll
+        clearTimeout(touchTimer);
+        return; 
+    }
+
+    // User is dragging
+    e.preventDefault(); // Stop scrolling
+    
+    const touch = e.touches[0];
+    const elUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!elUnder) return;
+
+    const list = elUnder.closest('.list-area');
+    if (!list) return;
+
+    const afterEl = getDragAfterElement(list, touch.clientY);
+    if (afterEl == null) list.appendChild(touchItem);
+    else list.insertBefore(touchItem, afterEl);
+}
+
+function handleTouchEnd(e) {
+    clearTimeout(touchTimer); // Ensure timer is cleared
+    if (isTouchDragging && touchItem) {
+        touchItem.classList.remove('dragging');
+        saveRankingOrder();
+    }
+    isTouchDragging = false;
+    touchItem = null;
+}
+
+/* --- UTILS --- */
+function getDragAfterElement(container, y) {
+    const draggables = [...container.querySelectorAll('.rank-card:not(.dragging)')];
+    return draggables.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+        else return closest;
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+async function saveRankingOrder() {
+    const list = document.getElementById('rankedList');
+    [...list.querySelectorAll('.rank-index')].forEach((el, i) => el.innerText = i + 1);
+    document.getElementById('unrankedList').querySelectorAll('.rank-index').forEach(el => el.innerText = '');
+
+    const names = [...list.querySelectorAll('.rank-card')].map(el => el.dataset.name);
+    try {
+        await fetch('/save_ranking', { method: 'POST', body: names.join('\n') });
+        const s = document.getElementById('saveStatus');
+        s.style.display = 'block'; setTimeout(()=>s.style.display='none', 2000);
+    } catch(e) {}
+}
+
+// NEW: Save directly to server via JSON
+async function saveManualRating(input, name) {
+    const val = input.value;
+    
+    // Update the local object
+    manualRatings[name] = val;
+
+    // Visual feedback
+    input.style.textShadow = "0 0 10px #fff";
+    setTimeout(() => input.style.textShadow = "none", 500);
+
+    // Send the whole ratings object to the server
+    try {
+        await fetch('/save_ratings', { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(manualRatings) 
+        });
+    } catch (e) {
+        console.error("Failed to save rating", e);
+    }
+}
+
+init();
+</script>
+</body>
+</html>

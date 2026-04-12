@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Anime Watch List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* --- CYBERPUNK VARIABLES --- */
+:root {
+    --bg-void: #050505;
+    --bg-panel: #141419;
+    --neon-cyan: #00f3ff;
+    --neon-pink: #ff0055;
+    --neon-green: #0aff0a;
+    --neon-yellow: #fcee0a;
+    --neon-purple: #bc13fe;
+    --text-main: #e0e6ed; 
+    --text-muted: #6c7a89;
+}
+
+/* --- GLOBAL RESET --- */
+::-webkit-scrollbar { display: none; }
+
+body { 
+    font-family: 'Rajdhani', sans-serif; 
+    background-color: var(--bg-void);
+    color: var(--text-main); 
+    padding: 30px; 
+    padding-bottom: 300px; 
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-size: cover;          
+    background-position: center;      
+    background-attachment: fixed;     
+    background-repeat: no-repeat;     
+}
+
+/* Optimized Grid */
+.cyber-grid-bg {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -1;
+    background-image: 
+        linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    will-change: transform;
+}
+
+/* Scanline Overlay */
+body::after {
+    content: " ";
+    display: block;
+    position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+    z-index: 9999;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* --- TOP BAR --- */
+.top-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 40px; padding: 15px;
+    border-bottom: 2px solid var(--neon-cyan);
+    box-shadow: 0 5px 20px rgba(0, 243, 255, 0.05);
+    position: relative;
+}
+.top-bar::after {
+    content: ''; position: absolute; right: 0; bottom: -6px; width: 100px; height: 10px;
+    background: var(--neon-cyan);
+    clip-path: polygon(10px 0, 100% 0, 100% 100%, 0% 100%);
+}
+
+h1 {
+    margin: 0; font-family: 'Orbitron', sans-serif; 
+    font-weight: 900; letter-spacing: 2px;
+    color: #fff; text-shadow: 0 0 5px var(--neon-cyan);
+    font-size: 2.5rem;
+}
+
+/* --- SEPARATORS --- */
+.status-separator {
+    width: 100%;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    padding: 10px 0 10px 20px;
+    border-left: 5px solid;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    background: linear-gradient(90deg, rgba(0,0,0,0.8), transparent);
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 1.5rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 15px;
+}
+.status-separator span { opacity: 0.5; font-size: 0.8rem; letter-spacing: 2px; font-family: 'Rajdhani'; }
+
+.sep-watching { border-color: var(--neon-cyan); color: #fff; text-shadow: 0 0 10px rgba(10, 255, 10, 0.3); }
+.sep-finished { border-color: var(--neon-green); color: #ccc; text-shadow: 0 0 10px rgba(0, 243, 255, 0.5); }
+.sep-ptw { border-color: #DDD; color: #ccc; text-shadow: 0 0 10px rgba(34, 34, 34, 0.3); }
+
+/* --- SHOW CARD --- */
+.show { 
+    margin-bottom: 40px; padding: 25px; 
+    background: rgba(20, 20, 25, 0.75);
+    border: 1px solid #333;
+    border-left: 4px solid var(--neon-cyan);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    position: relative;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+    transition: transform 0.2s, box-shadow 0.2s;
+    contain: content;
+}
+.show:hover { box-shadow: 0 0 20px rgba(0, 243, 255, 0.1); border-color: rgba(0, 243, 255, 0.5); }
+
+/* --- DYNAMIC STATUS COLORS --- */
+
+/* Finished Status (Green) */
+.show.is-finished { border-left-color: var(--neon-green) !important; }
+.show.is-finished:hover { box-shadow: 0 0 20px rgba(0, 255, 0, 0.1); border-color: rgba(0, 255, 0, 0.5); }
+.show.is-finished .toggle-btn { border-color: var(--neon-green); color: var(--neon-green); }
+.show.is-finished .toggle-btn:hover { background: var(--neon-green); color: #000; }
+.show.contracted.is-finished .toggle-btn { color: var(--neon-green); }
+.show.is-finished .rewatch-counter button { border-color: var(--neon-green); color: var(--neon-green); }
+.show.is-finished .progress-fill { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
+.show.is-finished .season-row:hover { background: rgba(0, 255, 38, 0.02); border-color: rgba(0, 255, 38, 0.3); }
+.show.is-finished .drag-handle { cursor: grab; color: var(--neon-green); font-size: 16px; }
+.show.is-finished .show-name:hover { color: var(--neon-green); text-shadow: 0 0 8px var(--neon-green); }
+
+/* PTW Status (Gray) */
+.show.is-ptw { border-left-color: #DDD !important; }
+.show.is-ptw:hover { box-shadow: 0 0 20px rgba(208, 208, 208, 0.1); border-color: rgba(208, 208, 208, 0.5); }
+.show.is-ptw .toggle-btn { border-color: #DDD; color: #DDD; }
+.show.is-ptw .toggle-btn:hover { border-color: #DDD; background: #DDD; color: #000; }
+.show.contracted.is-ptw .toggle-btn { color: #DDD; }
+.show.is-ptw .progress-track { opacity: 0.3; }
+.show.is-ptw .rewatch-counter button { border-color: #DDD; color: #DDD; }
+.show.is-ptw .progress-fill { background: #DDD; box-shadow: 0 0 10px #DDD; }
+.show.is-ptw .season-row:hover { background: rgba(208, 208, 208, 0.02); border-color: rgba(208, 208, 208, 0.3); }
+.show.is-ptw .drag-handle { cursor: grab; color: #DDD; font-size: 16px; }
+.show.is-ptw .show-name:hover { color: #DDD; text-shadow: 0 0 8px #DDD; }
+
+/* CONTRACTED STATE */
+.show.contracted .show-rows { display: none; }
+.show.contracted { padding-bottom: 15px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); margin-bottom: 15px; }
+.show.contracted .toggle-btn { transform: rotate(-90deg); color: var(--neon-cyan); }
+.show.contracted .toggle-btn:hover { transform: rotate(-90deg); color: #000; }
+.show.contracted:hover { border-color: #333; box-shadow: none; }
+.show.contracted .title-block { margin-bottom: 0; }
+
+.show-header { display: flex; align-items: flex-start; margin-bottom: 25px; gap: 15px; }
+.show.contracted .show-header { margin-bottom: 0; align-items: center; }
+
+/* Title Block & Progress */
+.title-block { flex: 1; display: flex; flex-direction: column; margin-right: 20px; }
+.show-name { 
+    font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 1.8em; color: #fff; 
+    cursor: text; border-bottom: 2px solid transparent; letter-spacing: 1px; width: fit-content;
+}
+.show-name:hover { color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan); }
+.show-name:focus { outline: none; border-bottom: 2px solid var(--neon-cyan); background: rgba(0,243,255,0.1); }
+
+/* Progress Bar */
+.progress-track {
+    width: 100%; height: 4px; background: #222; margin: 8px 0; position: relative;
+    border-radius: 2px; overflow: hidden;
+}
+.progress-fill {
+    height: 100%; background: var(--neon-cyan);
+    box-shadow: 0 0 10px var(--neon-cyan);
+    width: 0%; transition: width 0.3s;
+}
+
+/* Color Stats */
+.stat-ribbon { display: flex; gap: 10px; font-size: 11px; font-family: 'Orbitron'; font-weight: 700; }
+.stat-pill { display: flex; align-items: center; gap: 4px; color: #555; }
+.stat-pill span { color: #fff; }
+.stat-pill::before { content:''; display:block; width:6px; height:6px; background:currentColor; box-shadow:0 0 5px currentColor; transform: rotate(45deg); }
+.stat-green { color: var(--neon-green); }
+.stat-blue { color: var(--neon-cyan); }
+.stat-red { color: var(--neon-pink); }
+
+/* Buttons */
+.button-group { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
+button { font-family: 'Rajdhani', sans-serif; transition: background 0.2s, color 0.2s; letter-spacing: 1px; }
+.remove-btn, .clear-btn { 
+    border: 1px solid; cursor: pointer; padding: 6px 14px; font-weight: 700; font-size: 12px; 
+    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+}
+.remove-btn { background: rgba(255, 0, 85, 0.1); color: var(--neon-pink); border-color: var(--neon-pink); }
+.remove-btn:hover { background: var(--neon-pink); color: #000; }
+.clear-btn { background: transparent; color: var(--text-muted); border-color: var(--text-muted); }
+.clear-btn:hover { color: #fff; border-color: #fff; }
+
+.toggle-btn {
+    background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; clip-path: polygon(20% 0, 100% 0, 80% 100%, 0% 100%);
+    transition: transform 0.2s; margin-top: 5px;
+}
+.toggle-btn:hover { background: var(--neon-cyan); color: #000; }
+
+.rewatch-counter { 
+    display: flex; align-items: center; gap: 4px; background: #000; padding: 4px 10px; border: 1px solid #444;
+}
+.rewatch-counter button { 
+    background: transparent; color: var(--neon-cyan); border: 1px solid var(--neon-cyan);
+    cursor: pointer; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-family: 'Orbitron';
+}
+.rewatch-counter button:hover { background: var(--neon-cyan); color: #000; }
+
+/* Layout & Columns */
+.season-row { 
+    display: flex; align-items: flex-start; margin-bottom: 12px; padding: 10px;
+    border: 1px dashed rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); transition: background 0.2s;
+}
+.season-row:hover { background: rgba(0, 243, 255, 0.02); border-color: rgba(0, 243, 255, 0.3); }
+.season-row.drag-over { border: 1px solid var(--neon-green); background: rgba(10, 255, 10, 0.05); }
+
+.season-header-col { 
+    width: 220px; min-width: 220px; display: flex; flex-direction: column; gap: 8px; 
+    margin-right: 20px; padding-right: 15px; border-right: 1px solid rgba(255,255,255,0.1);
+}
+.header-info-block { display: flex; flex-direction: column; gap: 5px; padding: 8px; border: 1px solid transparent; transition: all 0.2s; }
+.header-info-block:hover { background: #111; border: 1px solid #444; }
+.header-info-block.dragging { opacity: 0.4; border: 1px dashed var(--neon-yellow); }
+.header-tools { display: flex; justify-content: space-between; align-items: center; opacity: 0.4; }
+.header-info-block:hover .header-tools { opacity: 1; }
+.drag-handle { cursor: grab; color: var(--neon-cyan); font-size: 16px; }
+
+.color-dot { width: 10px; height: 10px; transform: rotate(45deg); cursor: pointer; background: #333; border: 1px solid #666; transition: all 0.2s; }
+.color-dot.glow-blue { background: var(--neon-cyan); border-color: #fff; }
+.color-dot.glow-red { background: var(--neon-pink); border-color: #fff; }
+.color-dot.glow-green { background: var(--neon-green); border-color: #fff; }
+.season-label { font-size: 1.1rem; color: #fff; font-weight: 600; letter-spacing: 1px; }
+
+/* Inputs */
+.source-select {
+    width: 100%; font-size: 10px; padding: 4px; background: #000; border: 1px solid #444; 
+    color: var(--neon-cyan); font-family: 'Rajdhani'; font-weight: 700; cursor: pointer;
+}
+.source-select:hover { border-left: 3px solid var(--neon-cyan); border-color: var(--neon-cyan); }
+.source-select option { border-left: 3px solid #000; background: #000; color: #fff; }
+.source-select.src-netflix { border-left: 3px solid #E50914; color: #E50914; border-color: rgba(229, 9, 20, 0.5); }
+.source-select.src-crunchyroll { border-left: 3px solid #F47521 ; color: #F47521; border-color: rgba(244, 117, 33, 0.5); }
+.source-select.src-aniwatch { border-left: 3px solid #00AFFF; color: #00AFFF; border-color: rgba(0, 175, 255, 0.5); }
+.source-select.src-cinema { border-left: 3px solid rgb(190, 40, 245); color: rgb(190, 40, 245); border-color: rgb(145, 20, 205, 0.5); }
+.source-select.src-other { border-left: 3px solid #888888; color: #888888; border-color: rgba(85, 85, 85, 0.5); }
+.rating-select { width: 45px; font-size: 12px; padding: 2px; font-weight: 800; background: #000; border: 1px solid var(--neon-yellow); color: var(--neon-yellow); font-family: 'Orbitron'; }
+
+/* Episodes */
+.ep-row-container { flex: 1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 40px; padding: 5px; align-content: flex-start; }
+.segment-wrapper { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; padding: 5px; border: 1px solid transparent; }
+.segment-wrapper.glow-blue { border-bottom: 1px solid rgba(0, 243, 255, 0.1); }
+.segment-wrapper.glow-red { border-bottom: 1px solid rgba(255, 0, 85, 0.1); }
+.segment-wrapper.glow-green { border-bottom: 1px solid rgba(10, 255, 10, 0.1); }
+
+.ep { 
+    width: 30px; height: 30px; background: rgba(255,255,255,0.03); cursor: pointer; 
+    display: flex; align-items: center; justify-content: center; font-size: 12px; color: #555; font-weight: 700; 
+    border: 1px solid #333; user-select: none; transition: transform 0.1s, background 0.1s, color 0.1s;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+.ep:hover { background: #fff; color: #000; border-color: #fff; transform: scale(1.1); z-index: 10; box-shadow: 0 0 10px #fff; }
+
+.segment-wrapper.glow-green .ep.finished { background: var(--neon-green); color: #000; border-color: var(--neon-green); box-shadow: 0 0 5px var(--neon-green); }
+.segment-wrapper.glow-blue .ep.finished { background: var(--neon-cyan); color: #000; border-color: var(--neon-cyan); box-shadow: 0 0 5px var(--neon-cyan); }
+.segment-wrapper.glow-red .ep.finished { background: var(--neon-pink); color: #000; border-color: var(--neon-pink); box-shadow: 0 0 5px var(--neon-pink); }
+
+.ep.is-movie-pill { width: auto; padding: 0 20px; min-width: 80px; height: 26px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); border: 1px solid #555; background: #111; color: #888; letter-spacing: 1px; }
+.ep.is-movie-pill:hover { transform: translateY(-2px); border-color: #fff; color: #fff; }
+.ep.is-movie-pill.finished { background: linear-gradient(90deg, var(--neon-cyan), #007aff); color: #fff; border: none; box-shadow: 0 0 10px rgba(0, 243, 255, 0.3); text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+.ep.tba { background: repeating-linear-gradient(45deg, #111, #111 5px, #222 5px, #222 10px); border: 1px dashed #555; color: #555; }
+.ep.drag-target-ep { border: 2px dashed var(--neon-yellow) !important; animation: pulse 1s infinite; }
+@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+/* Admin */
+.manage-section { 
+    background: rgba(10, 10, 12, 0.75); padding: 30px; border: 1px solid #333; border-top: 2px solid var(--neon-purple);
+    margin-top: 50px; position: relative;
+    contain: content;
+}
+.manage-section::before { content: "SYSTEM_ACCESS"; position: absolute; top: -12px; left: 20px; background: var(--neon-purple); color: #000; font-weight: bold; font-size: 10px; padding: 2px 8px; }
+h2 { margin-top: 0; color: var(--text-muted); letter-spacing: 3px; font-family: 'Orbitron'; border-bottom: 1px solid #333; padding-bottom: 10px; }
+.manage-row { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+label { font-size: 0.9rem; color: var(--neon-cyan); font-weight: 600; min-width: 80px; }
+input, select, textarea { 
+    background: #050505; color: var(--neon-cyan); border: 1px solid #333; border-left: 2px solid #555; padding: 10px 14px; 
+    font-family: 'Courier New', monospace; font-size: 14px; transition: all 0.2s;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--neon-cyan); box-shadow: -5px 0 0 var(--neon-cyan); }
+textarea { width: 100%; height: 80px; resize: vertical; line-height: 1.5; }
+
+button.main-btn, button.warn-btn { 
+    padding: 10px 25px; cursor: pointer; border: none; font-weight: 700; font-size: 14px; font-family: 'Orbitron';
+    clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+}
+button.main-btn { background: var(--neon-green); color: #000; }
+button.main-btn:hover { background: #fff; box-shadow: 0 0 10px var(--neon-green); }
+button.warn-btn { background: var(--neon-pink); color: #000; }
+button.warn-btn:hover { background: #fff; box-shadow: 0 0 10px var(--neon-pink); }
+
+/* IO Bar */
+.io-section { 
+    margin-top: 60px; display: flex; justify-content: center; gap: 20px; padding: 20px; 
+    background: rgba(0, 0, 0, 0.75); border: 1px solid #333; clip-path: polygon(20px 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px), 0 20px);
+    width: fit-content; margin-left: auto; margin-right: auto;
+}
+.io-btn { 
+    padding: 10px 30px; font-weight: 600; cursor: pointer; font-size: 13px; font-family: 'Orbitron';
+    border: 1px solid var(--neon-cyan); color: var(--neon-cyan); background: transparent; transition: all 0.2s; 
+}
+.io-btn:hover { background: var(--neon-cyan); color: #000; }
+.export-btn { border-color: var(--neon-yellow); color: var(--neon-yellow); }
+.export-btn:hover { background: var(--neon-yellow); color: #000; }
+
+.server-status { 
+    font-size: 10px; font-weight: 700; padding: 4px 12px; background: #000; color: #555; border: 1px solid #333; 
+    display: flex; align-items: center; gap: 8px; font-family: 'Orbitron'; letter-spacing: 1px;
+}
+.server-status::before { content:''; display: block; width: 8px; height: 8px; background: currentColor; box-shadow: 0 0 5px currentColor; }
+.stats { 
+    font-weight: 600; color: var(--neon-cyan); padding: 10px 20px; 
+    background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.2); 
+    width: fit-content; margin-bottom: 20px; letter-spacing: 2px;
+}
+</style>
+</head>
+<body>
+
+<div class="cyber-grid-bg"></div>
+
+<div class="top-bar">
+    <div style="display:flex; align-items:center; gap:20px;">
+        <h1>Anime Watch List</h1>
+        <div id="serverStatus" class="server-status">Connecting...</div>
+    </div>
+    <a href="/anime/ranking" style="text-decoration:none;">
+        <button class="io-btn" style="background:rgba(0,0,0,0.5); border:1px solid var(--neon-yellow); color:var(--neon-yellow);">
+            ★ RANKING BOARD
+        </button>
+    </a>
+</div>
+
+<div id="stats" class="stats"></div>
+<div id="shows"></div>
+
+<div class="manage-section">
+    <h2>Add New Entry</h2>
+    <textarea id="addEntry" placeholder='SYNTAX: Name\12"Season 1"x1"Movie"x_"Part 2"?0'></textarea>
+    <div style="margin-top:15px; text-align:right;">
+        <button class="main-btn" onclick="addEntry()">UPLOAD</button>
+    </div>
+</div>
+
+<div class="manage-section">
+    <h2>Modify Database</h2>
+    <div class="manage-row">
+        <label>Target</label>
+        <select id="updateShowSelect" onchange="loadUpdateOptions()" style="min-width: 250px; flex:1;"><option value="">Select a show...</option></select>
+    </div>
+    
+    <div class="manage-row">
+        <label>Add</label>
+        <input type="text" id="newSeasonEps" placeholder="Count" style="width: 100px;">
+        <button class="main-btn" onclick="manageAddSeason()">ADD SEGMENT</button>
+    </div>
+    
+    <div class="manage-row" style="background:rgba(255,255,255,0.03); padding:15px; border: 1px solid #333;">
+        <label>Edit</label>
+        <select id="seasonSelect" style="flex:1; margin-right: 10px;"></select>
+        <input type="text" id="updateSeasonEps" placeholder="#" style="width: 60px; margin-right: 10px;">
+        <button class="main-btn" onclick="manageUpdateSeason()" style="margin-right: 10px;">SAVE</button>
+        <button class="warn-btn" onclick="manageDeleteSeason()">DELETE</button>
+    </div>
+</div>
+
+<div class="io-section">
+    <button class="io-btn export-btn" onclick="exportData()">EXPORT DATA</button>
+    <input type="file" id="importFileInput" style="display: none;" accept=".txt" onchange="importData(this)">
+    <button class="io-btn import-btn" onclick="document.getElementById('importFileInput').click()">LOAD DATA</button>
+    <input type="file" id="bgFileInput" style="display: none;" accept="image/*" onchange="setBackground(this)">
+    <button class="io-btn bg-btn" onclick="document.getElementById('bgFileInput').click()">WALLPAPER</button>
+</div>
+
+<script>
+const DELIM = '^'; 
+let appState = []; // Holds the parsed objects
+const COLORS = ['glow-green', 'glow-red', 'glow-blue'];
+const statusEl = document.getElementById('serverStatus');
+
+/* --- SERVER SYNC --- */
+function updateStatus(msg, type) {
+    statusEl.innerText = msg;
+    if(type === 'success') { statusEl.style.color = '#0aff0a'; statusEl.style.borderColor = '#0aff0a'; }
+    else if(type === 'error') { statusEl.style.color = '#ff0055'; statusEl.style.borderColor = '#ff0055'; }
+    else { statusEl.style.color = '#555'; statusEl.style.borderColor = '#333'; }
+}
+async function loadFromServer() {
+    fetch('/bg').then(r => r.ok ? r.text() : null).then(d => { if(d) document.body.style.backgroundImage = `url(${d})`; }).catch(()=>{});
+    updateStatus("INITIALIZING...", "normal");
+    try {
+        const response = await fetch('/data');
+        if (!response.ok) throw new Error("Server Error");
+        const text = await response.text();
+        parseAllData(text); // Parse ONCE
+        renderAll();        // Render ONCE
+        updateStatus("SYSTEM ONLINE", "success");
+    } catch (e) { updateStatus("OFFLINE MODE", "error"); }
+}
+async function saveToServer() {
+    updateStatus("UPLOADING...", "normal");
+    try {
+        const rawText = stringifyState();
+        const response = await fetch('/save', { method: 'POST', headers: {'Content-Type': 'text/plain'}, body: rawText });
+        if(response.ok) { updateStatus("SAVED", "success"); setTimeout(() => updateStatus("SYSTEM ONLINE", "success"), 2000); } 
+        else throw new Error("Save Failed");
+    } catch (e) { updateStatus("UPLOAD FAILED", "error"); }
+}
+
+/* --- DATA HANDLING --- */
+function parseAllData(text) {
+    appState = text.split('\n').map(l => l.trim()).filter(Boolean).map(parseLine).filter(Boolean);
+}
+function stringifyState() {
+    return appState.map(rebuildLine).join('\n');
+}
+
+function parseLine(line) {
+    if (!line.includes('\\')) return null;
+    let parts = line.includes(DELIM) ? line.split(DELIM) : line.split('?');
+    const [nameAndSeasons, watchedPart, rewatchPart, ratingPart, titlePart, colorPart, sourcePart] = parts;
+    const [name, seasonStr] = nameAndSeasons.split('\\');
+    if (!seasonStr) return null;
+    
+    const seasons = seasonStr.split('x').map(s => (s === '?' ? '?' : s));
+
+    return {
+        name: name, 
+        seasons: seasons,
+        watched: Number(watchedPart || 0), rewatch: Number(rewatchPart || 0),
+        ratings: (ratingPart || '').split('x').map(Number), titles: (titlePart || '').split('|'),
+        colors: (colorPart || '').split('|'), sources: (sourcePart || '').split('|'),
+        _expanded: false // DEFAULT: Contracted
+    };
+}
+
+function rebuildLine(obj) {
+    while(obj.ratings.length < obj.seasons.length) obj.ratings.push(0);
+    while(obj.titles.length < obj.seasons.length) obj.titles.push('');
+    while(obj.colors.length < obj.seasons.length) obj.colors.push('');
+    while(obj.sources.length < obj.seasons.length) obj.sources.push('');
+    const cleanTitles = obj.titles.map(t => t.replace(/\^|\|/g, '').trim());
+    return `${obj.name}\\${obj.seasons.join('x')}${DELIM}${obj.watched}${DELIM}${obj.rewatch}${DELIM}${obj.ratings.join('x')}${DELIM}${cleanTitles.join('|')}${DELIM}${obj.colors.join('|')}${DELIM}${obj.sources.join('|')}`;
+}
+
+// PERFORMANCE: Force renderAll to ensure cards jump sections immediately
+function saveAndRenderEffect(index) {
+    renderAll();
+    updateStatsHTML();
+    saveToServer();
+}
+
+/* --- AUTO MERGE LOGIC --- */
+function autoMergeSeasons(o) {
+    let merged = false;
+    for (let i = o.seasons.length - 2; i >= 0; i--) {
+        const currRaw = o.seasons[i]; const nextRaw = o.seasons[i+1];
+        const currTitle = o.titles[i] || ''; const nextTitle = o.titles[i+1] || '';
+        const currSrc = o.sources[i] || ''; const nextSrc = o.sources[i+1] || '';
+        if (currTitle === nextTitle && currSrc === nextSrc && currRaw !== '?' && nextRaw !== '?') {
+            const c1 = parseInt(currRaw.toString().replace('+',''));
+            const c2 = parseInt(nextRaw.toString().replace('+',''));
+            if (!isNaN(c1) && !isNaN(c2)) {
+                let newCount = c1 + c2;
+                if (currRaw.toString().startsWith('+')) newCount = "+" + newCount;
+                o.seasons[i] = newCount;
+                ['seasons','titles','sources','colors','ratings'].forEach(k => o[k].splice(i+1, 1));
+                merged = true;
+            }
+        }
+    }
+    return merged;
+}
+
+/* --- ACTIONS --- */
+function addEntry() {
+    const txt = document.getElementById('addEntry');
+    const nl = txt.value.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+        if (!l.includes('\\')) return null;
+        const [n, r] = l.split('\\'); const p = r.split('?')[0].split('x');
+        const c = [], t = [];
+        p.forEach(x => { const m = x.match(/^(\+?\d+|\?|_)\s*(?:"([^"]*)")?$/); c.push(m?m[1]:x); t.push(m?m[2]||'':''); });
+        const obj = {
+            name: n, seasons: c, watched: 0, rewatch: 0,
+            ratings: Array(c.length).fill(0), titles: t, colors: Array(c.length).fill(''), sources: Array(c.length).fill(''),
+            _expanded: false
+        };
+        return obj;
+    }).filter(Boolean);
+    if(nl.length) { 
+        appState.push(...nl); 
+        renderAll(); saveToServer(); txt.value = ''; 
+    }
+}
+function removeEntry(i) { if(confirm("CONFIRM DELETION?")) { appState.splice(i, 1); renderAll(); saveToServer(); } }
+function updateBasic(i, fn) { fn(appState[i]); saveAndRenderEffect(i); }
+function setShowName(i, v) { updateBasic(i, o => o.name = v.replace(/\\/g, '').trim()); }
+function adjustRewatch(i, d) { updateBasic(i, o => o.rewatch = Math.max(0, o.rewatch + d)); }
+function clearWatched(i) { if(confirm("RESET PROGRESS?")) updateBasic(i, o => o.watched = 0); }
+function updateProgress(i, w) { updateBasic(i, o => o.watched = w); }
+
+/* --- PER-SEASON ACTIONS --- */
+function updateSeasonProp(i, si, fn) { fn(appState[i]); saveAndRenderEffect(i); }
+function setSeasonTitle(i, si, v) { updateSeasonProp(i, si, o => { while(o.titles.length<=si)o.titles.push(''); o.titles[si]=v; }); }
+function setRating(i, si, v) { updateSeasonProp(i, si, o => { while(o.ratings.length < o.seasons.length) o.ratings.push(0); o.ratings[si] = parseInt(v); }); }
+function cycleColor(i, si) { updateSeasonProp(i, si, o => { while(o.colors.length<=si)o.colors.push(''); let idx=COLORS.indexOf(o.colors[si]); o.colors[si]=COLORS[(idx+1)%COLORS.length]; }); }
+function setSource(i, si, v) { updateSeasonProp(i, si, o => { while(o.sources.length<=si)o.sources.push(''); o.sources[si]=v; }); }
+
+/* --- MANAGEMENT UI --- */
+function populateUpdateDropdowns() {
+    const sel = document.getElementById('updateShowSelect'); const cur = sel.value; sel.innerHTML = '<option value="">Select Target...</option>';
+    appState.forEach((p, i) => { const o = document.createElement('option'); o.value = i; o.textContent = p.name; sel.appendChild(o); });
+    if(cur) sel.value = cur; loadUpdateOptions();
+}
+function loadUpdateOptions() {
+    const idx = document.getElementById('updateShowSelect').value; const sSel = document.getElementById('seasonSelect'); sSel.innerHTML = '';
+    if(idx === '') return;
+    const o = appState[idx];
+    o.seasons.forEach((cRaw, i) => { 
+        const c = cRaw.toString().replace('+','');
+        const opt = document.createElement('option'); opt.value = i; opt.textContent = `${o.titles[i]||'Season '+(i+1)} [${c} EP]`; sSel.appendChild(opt); 
+    });
+}
+function manageAddSeason() {
+    const idx = document.getElementById('updateShowSelect').value; let val = document.getElementById('newSeasonEps').value.trim();
+    let nVal = (val==='?'||val==='_')?'?':parseInt(val); if(idx==='') return;
+    updateBasic(idx, o => { o.seasons.push(nVal); o.ratings.push(0); o.titles.push(''); o.colors.push(''); o.sources.push(''); });
+    document.getElementById('newSeasonEps').value = '';
+}
+function manageUpdateSeason() {
+    const idx = document.getElementById('updateShowSelect').value; const si = document.getElementById('seasonSelect').value;
+    let nVal = parseInt(document.getElementById('updateSeasonEps').value.trim());
+    if(idx===''||si==='') return;
+    updateBasic(idx, o => { 
+        const oldRaw = o.seasons[si];
+        const isMerged = oldRaw.toString().startsWith('+');
+        o.seasons[si] = isMerged ? "+" + nVal : nVal; 
+    });
+    document.getElementById('updateSeasonEps').value = '';
+}
+function manageDeleteSeason() {
+    const idx = document.getElementById('updateShowSelect').value; const si = document.getElementById('seasonSelect').value;
+    if(idx===''||si==='') return; if(!confirm("CONFIRM DELETION?")) return;
+    updateBasic(idx, o => { 
+        if(o.seasons.length<=1) return alert("Cannot delete only season");
+        ['seasons','ratings','titles','colors','sources'].forEach(k => o[k].splice(si, 1));
+        if(o.seasons[0].toString().startsWith('+')) o.seasons[0] = o.seasons[0].toString().replace('+','');
+        autoMergeSeasons(o);
+    });
+}
+
+/* --- DRAG & DROP LOGIC --- */
+let dragSrcShow, dragSrcSeason;
+function handleDragStart(e, showI, sI) { 
+    dragSrcShow = showI; dragSrcSeason = sI; 
+    e.target.closest('.header-info-block').classList.add('dragging');
+}
+function handleDragOver(e) { if(e.preventDefault) e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; }
+function handleDragEnd(e) { 
+    document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+    document.querySelectorAll('.drag-target-ep').forEach(el => el.classList.remove('drag-target-ep'));
+}
+// Drop on ROW/Header (Reorder)
+function handleDrop(e, showI, targetSeasonI) {
+    if(e.stopPropagation) e.stopPropagation();
+    if(dragSrcShow !== showI || dragSrcSeason === targetSeasonI) return false;
+    if(e.target.classList.contains('ep')) return false;
+
+    const o = appState[showI];
+    const move = (arr) => {
+        while(arr.length < o.seasons.length) arr.push('');
+        const item = arr[dragSrcSeason]; arr.splice(dragSrcSeason, 1); arr.splice(targetSeasonI, 0, item);
+    };
+
+    let tempW = o.watched;
+    let wPerS = o.seasons.map(cRaw => {
+        if(cRaw === '?') return 0;
+        let c = parseInt(cRaw.toString().replace('+',''));
+        let w = Math.min(c, tempW); tempW = Math.max(0, tempW-c); return w;
+    });
+    
+    const wItem = wPerS[dragSrcSeason]; wPerS.splice(dragSrcSeason, 1); wPerS.splice(targetSeasonI, 0, wItem);
+
+    move(o.seasons); move(o.ratings); move(o.titles); move(o.colors); move(o.sources);
+
+    if(o.seasons[0].toString().startsWith('+')) o.seasons[0] = o.seasons[0].toString().replace('+','');
+    if(o.seasons[targetSeasonI].toString().startsWith('+')) o.seasons[targetSeasonI] = o.seasons[targetSeasonI].toString().replace('+','');
+
+    autoMergeSeasons(o);
+    o.watched = wPerS.reduce((a, b) => a + b, 0);
+    saveAndRenderEffect(showI);
+    return false;
+}
+// Drag Movie into Episode
+function handleEpDragEnter(e) { e.target.classList.add('drag-target-ep'); }
+function handleEpDragLeave(e) { e.target.classList.remove('drag-target-ep'); }
+function handleEpDrop(e, showI, targetSeasonI, splitPoint) {
+    if(e.stopPropagation) e.stopPropagation();
+    e.target.classList.remove('drag-target-ep');
+    if(dragSrcShow !== showI) return false;
+    if(dragSrcSeason === targetSeasonI) return false;
+
+    const o = appState[showI];
+    const srcRaw = o.seasons[dragSrcSeason];
+    const srcCount = parseInt(srcRaw.toString().replace('+',''));
+    
+    if(srcCount !== 1) return alert("Only Movies can be inserted.");
+    const targetRaw = o.seasons[targetSeasonI];
+    const targetCount = parseInt(targetRaw.toString().replace('+',''));
+    if(isNaN(targetCount) || targetCount < 2) return false;
+
+    const srcData = { c: srcCount, r: o.ratings[dragSrcSeason]||0, t: o.titles[dragSrcSeason]||'', cl: o.colors[dragSrcSeason]||'', s: o.sources[dragSrcSeason]||'' };
+    
+    let tempW = o.watched;
+    let wPerS = o.seasons.map(cRaw => {
+        if(cRaw==='?') return 0;
+        let c = parseInt(cRaw.toString().replace('+',''));
+        let w = Math.min(c, tempW); tempW = Math.max(0, tempW-c); return w;
+    });
+    const sourceWatched = wPerS[dragSrcSeason]; const targetWatched = wPerS[targetSeasonI];
+
+    let adjustTargetI = targetSeasonI; if(dragSrcSeason < targetSeasonI) adjustTargetI--;
+    ['seasons', 'ratings', 'titles', 'colors', 'sources'].forEach(k => o[k].splice(dragSrcSeason, 1));
+    
+    const part1Len = splitPoint; const part2Len = targetCount - splitPoint;
+    const isTargetMerged = o.seasons[adjustTargetI].toString().startsWith('+');
+    const p1Prefix = isTargetMerged ? "+" : "";
+
+    const part1 = { c: p1Prefix + part1Len, w: Math.min(part1Len, targetWatched), t: o.titles[adjustTargetI] || '', s: o.sources[adjustTargetI] || '', cl: o.colors[adjustTargetI] || '', r: 0 };
+    const part2 = { c: "+" + part2Len, w: Math.max(0, targetWatched - part1Len), t: o.titles[adjustTargetI] || '', s: o.sources[adjustTargetI] || '', cl: o.colors[adjustTargetI] || '', r: 0 };
+    const mergedSource = { c: "+" + srcData.c, t: srcData.t, s: srcData.s, cl: srcData.cl, r: srcData.r };
+
+    o.seasons.splice(adjustTargetI, 1, part1.c, mergedSource.c, part2.c);
+    o.titles.splice(adjustTargetI, 1, part1.t, mergedSource.t, part2.t);
+    o.sources.splice(adjustTargetI, 1, part1.s, mergedSource.s, part2.s);
+    o.colors.splice(adjustTargetI, 1, part1.cl, mergedSource.cl, part2.cl);
+    o.ratings.splice(adjustTargetI, 1, 0, mergedSource.r, 0);
+
+    wPerS.splice(dragSrcSeason, 1); wPerS.splice(adjustTargetI, 1, part1.w, sourceWatched, part2.w);
+    o.watched = wPerS.reduce((a, b) => a + b, 0);
+    saveAndRenderEffect(showI);
+}
+
+
+/* --- RENDER LOGIC --- */
+
+function updateStatsHTML() {
+    let wS=0, totalGlobalEps=0, totalGlobalWatched=0;
+    appState.forEach(s=>{ 
+        const tot = s.seasons.reduce((a,b) => {
+            if(b === '?') return a;
+            return a + (parseInt(b.toString().replace('+',''))||0);
+        }, 0);
+        totalGlobalEps += tot; totalGlobalWatched += s.watched;
+        if(s.watched===tot && tot>0) wS++;
+    });
+    const percent = totalGlobalEps > 0 ? ((totalGlobalWatched / totalGlobalEps) * 100).toFixed(1) : "0.0";
+    document.getElementById('stats').innerHTML = `
+        <span style="color:#fff">${wS} / ${appState.length}</span> SHOWS 
+        <span style="margin:0 10px; opacity:0.3; color:#fff;">|</span> 
+        <span style="color:var(--neon-green)">${totalGlobalWatched} / ${totalGlobalEps}</span> EPS 
+        <span style="color:var(--neon-yellow)">[${percent}%]</span>
+    `;
+}
+
+function buildShowCard(show, i) {
+    const { name, seasons, watched, rewatch, ratings, titles, colors, sources, _expanded } = show;
+    
+    // --- STATUS CALCULATION ---
+    const totalEps = seasons.reduce((acc, s) => {
+        if (s === '?') return acc;
+        return acc + (parseInt(s.toString().replace('+', '')) || 0);
+    }, 0);
+
+    const isFinished = (watched === totalEps && totalEps > 0);
+    const isPTW = (watched === 0);
+
+    const card = document.createElement('div'); 
+    card.className = 'show'; 
+    if(!_expanded) card.classList.add('contracted');
+    card.id = `show-${i}`;
+
+    // Apply dynamic accent classes
+    if (isFinished) card.classList.add('is-finished');
+    if (isPTW) card.classList.add('is-ptw');
+
+    const rowsContainer = document.createElement('div');
+    rowsContainer.className = 'show-rows'; 
+    
+    let globalOffset = 0;
+    let activeRow, activeLeftCol, activeRightCol;
+    let currentMergeTitle = null;
+    let visualEpCount = 1;
+
+    // Track Color Stats
+    const colorStats = { 
+        'glow-green': { w:0, t:0, class:'stat-green' }, 
+        'glow-red': { w:0, t:0, class:'stat-red' }, 
+        'glow-blue': { w:0, t:0, class:'stat-blue' } 
+    };
+
+    seasons.forEach((countRaw, si) => {
+        const isMerged = countRaw.toString().startsWith('+');
+        const count = (countRaw === '?') ? '?' : parseInt(countRaw.toString().replace('+',''));
+        const segmentColor = (colors && colors[si]) ? colors[si] : '';
+        
+        let localWatched = 0;
+        if(count !== '?') {
+            localWatched = Math.max(0, Math.min(count, watched - globalOffset));
+            if(colorStats[segmentColor]) {
+                colorStats[segmentColor].t += count;
+                colorStats[segmentColor].w += localWatched;
+            }
+        }
+
+        /* --- BUILD ROWS --- */
+        if (!isMerged) {
+            activeRow = document.createElement('div'); activeRow.className = 'season-row';
+            activeLeftCol = document.createElement('div'); activeLeftCol.className = 'season-header-col';
+            activeRightCol = document.createElement('div'); activeRightCol.className = `ep-row-container`;
+            activeRow.append(activeLeftCol, activeRightCol);
+            rowsContainer.appendChild(activeRow);
+            currentMergeTitle = titles[si] || `Season ${si+1}`;
+            visualEpCount = 1;
+        }
+
+        const thisTitle = titles[si] || (count===1 ? "Movie" : `Season ${si+1}`);
+        const shouldRenderHeader = !isMerged || (thisTitle !== currentMergeTitle);
+
+        if(shouldRenderHeader) {
+            const infoBlock = document.createElement('div'); infoBlock.className = 'header-info-block';
+            const tools = document.createElement('div'); tools.className = 'header-tools';
+            const dragH = document.createElement('div'); dragH.className='drag-handle'; dragH.innerHTML='&#9776;';
+            const colorDot = document.createElement('div'); 
+            colorDot.className = `color-dot ${segmentColor}`; colorDot.title = "Change Color";
+            colorDot.onclick = (e) => { e.stopPropagation(); cycleColor(i, si); };
+            tools.append(dragH, colorDot);
+            infoBlock.append(tools);
+
+            infoBlock.draggable = true;
+            infoBlock.ondragstart = (e) => { handleDragStart(e, i, si); };
+            infoBlock.ondragover = handleDragOver;
+            infoBlock.ondrop = (e) => handleDrop(e, i, si);
+
+            const lbl = document.createElement('div'); lbl.className='season-label';
+            lbl.innerText = thisTitle; lbl.contentEditable = true; 
+            lbl.onblur = (e) => setSeasonTitle(i, si, e.target.innerText);
+            infoBlock.appendChild(lbl);
+
+            const metaRow = document.createElement('div'); metaRow.className = 'meta-row';
+            const sel = document.createElement('select');
+            let sc = ''; if(sources[si]==='netflix') sc='src-netflix'; else if(sources[si]==='crunchyroll') sc='src-crunchyroll'; else if(sources[si]==='aniwatch') sc='src-aniwatch'; else if(sources[si]==='cinema') sc='src-cinema'; else if(sources[si]==='other') sc='src-other';
+            sel.className = `source-select ${sc}`;
+            [{v:'',t:'SOURCE: TBD'},{v:'netflix',t:'NETFLIX'},{v:'crunchyroll',t:'CRUNCHYROLL'},{v:'aniwatch',t:'ANIWATCH'},{v:'cinema',t:'CINEMA'},{v:'other',t:'OTHER'}].forEach(o=>{
+                const op = document.createElement('option'); op.value=o.v; op.textContent=o.t; if(sources[si]===o.v) op.selected=true; sel.appendChild(op);
+            });
+            sel.onchange = (e) => setSource(i, si, e.target.value);
+            metaRow.appendChild(sel);
+
+            if(localWatched === count && count !== '?') {
+                const rateSel = document.createElement('select'); rateSel.className='rating-select';
+                rateSel.appendChild(new Option('-', 0));
+                for(let r=10;r>=1;r--) { 
+                    const o=new Option(r,r); if(r===ratings[si]) o.selected=true; rateSel.appendChild(o); 
+                }
+                rateSel.onclick=e=>e.stopPropagation(); 
+                rateSel.onchange=()=>setRating(i, si, rateSel.value);
+                metaRow.appendChild(rateSel);
+            }
+            infoBlock.appendChild(metaRow);
+            activeLeftCol.appendChild(infoBlock);
+        }
+
+        const segmentWrapper = document.createElement('div');
+        segmentWrapper.className = `segment-wrapper ${segmentColor}`;
+
+        if(count === '?') {
+            const tba = document.createElement('div'); tba.className = 'ep tba'; tba.innerText = '?'; segmentWrapper.appendChild(tba);
+        } else {
+            if(count === 1 && segmentColor === "glow-blue") {
+                const ep = document.createElement('div'); ep.className = 'ep is-movie-pill';
+                ep.innerText = titles[si] || "Movie";
+                if(localWatched === 1) ep.classList.add('finished');
+                const movieTarget = globalOffset + 1;
+                ep.onclick = (e) => { e.stopPropagation(); updateProgress(i, movieTarget); };
+                segmentWrapper.appendChild(ep);
+            } else {
+                const isContinuation = (titles[si] === currentMergeTitle || (!titles[si] && !currentMergeTitle));
+                for(let k=0; k<count; k++) {
+                    const ep = document.createElement('div'); ep.className = 'ep';
+                    ep.innerText = isContinuation ? visualEpCount : (k + 1);
+                    if(k < localWatched && localWatched === count) ep.classList.add('finished');
+                    else if(k < localWatched) {
+                        if(segmentColor === "glow-green") { ep.style.background = `rgba(10, 255, 10, 0.4)`; ep.style.color = '#fff'; ep.style.borderColor = 'rgba(10, 255, 10, 0.5)'; }
+                        else if(segmentColor === "glow-blue") { ep.style.background = `rgba(0, 243, 255, 0.4)`; ep.style.color = '#fff'; ep.style.borderColor = 'rgba(0, 243, 255, 0.5)'; }
+                        else if(segmentColor === "glow-red") { ep.style.background = `rgba(255, 0, 85, 0.4)`; ep.style.color = '#fff'; ep.style.borderColor = 'rgba(255, 0, 85, 0.5)'; }
+                    }
+                    const clickTarget = globalOffset + k + 1;
+                    ep.onclick = (e) => { e.stopPropagation(); updateProgress(i, clickTarget); };
+                    ep.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; };
+                    ep.ondragenter = handleEpDragEnter;
+                    ep.ondragleave = handleEpDragLeave;
+                    ep.ondrop = (e) => handleEpDrop(e, i, si, k + 1);
+                    segmentWrapper.appendChild(ep);
+                    if(isContinuation) visualEpCount++;
+                }
+            }
+        }
+        activeRightCol.appendChild(segmentWrapper);
+        if (typeof count === 'number') globalOffset += count;
+    });
+
+    /* --- BUILD HEADER --- */
+    const h = document.createElement('div'); h.className='show-header';
+    
+    // Toggle Button (color handled by CSS class .is-finished or .is-ptw)
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'toggle-btn'; toggleBtn.innerHTML = '▼';
+    toggleBtn.onclick = (e) => { e.stopPropagation(); card.classList.toggle('contracted'); appState[i]._expanded = !card.classList.contains('contracted'); };
+
+    const titleBlock = document.createElement('div'); titleBlock.className = 'title-block';
+    const t = document.createElement('div'); t.className='show-name'; t.innerText=name; t.contentEditable=true; t.onblur=e=>setShowName(i, e.target.innerText);
+    
+    const pTrack = document.createElement('div'); pTrack.className = 'progress-track';
+    const pFill = document.createElement('div'); pFill.className = 'progress-fill';
+    const pct = totalEps > 0 ? (watched / totalEps) * 100 : 0;
+    
+    // If finished, force green color via CSS or inline override
+    pFill.style.width = `${pct}%`;
+    pTrack.appendChild(pFill);
+
+    const statRibbon = document.createElement('div'); statRibbon.className = 'stat-ribbon';
+    Object.values(colorStats).forEach(s => {
+        if(s.t > 0) {
+            const pill = document.createElement('span'); pill.className = `stat-pill ${s.class}`;
+            pill.innerHTML = `<span>${s.w}</span>/${s.t}`;
+            statRibbon.appendChild(pill);
+        }
+    });
+
+    titleBlock.append(t, pTrack, statRibbon);
+
+    const btnGroup = document.createElement('div'); btnGroup.className = 'button-group';
+    const rwDiv = document.createElement('div'); rwDiv.className = 'rewatch-counter';
+    // If finished, border color is green (handled by .is-finished CSS)
+    rwDiv.innerHTML = `<button onclick="adjustRewatch(${i},-1)">-</button><span style="font-size:12px;margin:0 4px; font-weight:600; min-width:30px; text-align:center; color:#fff;">RW:${rewatch}</span><button onclick="adjustRewatch(${i},1)">+</button>`;
+    
+    const cBtn = document.createElement('button'); cBtn.className='clear-btn'; cBtn.innerText='RESET'; cBtn.onclick=()=>clearWatched(i);
+    const rBtn = document.createElement('button'); rBtn.className='remove-btn'; rBtn.innerText='DEL'; rBtn.onclick=()=>removeEntry(i);
+    btnGroup.append(rwDiv, cBtn, rBtn);
+    
+    h.append(toggleBtn, titleBlock, btnGroup); 
+    card.appendChild(h);
+    card.appendChild(rowsContainer);
+    return card;
+}
+
+function renderAll() {
+    const cont = document.getElementById('shows'); cont.innerHTML = '';
+    
+    // Sort logic
+    const indices = appState.map((_, i) => i);
+    indices.sort((a,b) => {
+        const getStat = (o) => {
+            const tot = o.seasons.reduce((acc,s) => acc + (s==='?'?0:parseInt(s.toString().replace('+',''))||0),0);
+            return (o.watched>0&&o.watched<tot)?0:(o.watched===tot?1:2);
+        }
+        const sA = getStat(appState[a]); const sB = getStat(appState[b]);
+        return sA!==sB ? sA-sB : appState[a].name.localeCompare(appState[b].name);
+    });
+
+    // Create fragment for performance
+    const frag = document.createDocumentFragment();
+    let lastCat = -1;
+
+    indices.forEach(i => {
+        // Separator Logic
+        const show = appState[i];
+        const tot = show.seasons.reduce((acc,s) => acc + (s==='?'?0:parseInt(s.toString().replace('+',''))||0),0);
+        const cat = (show.watched>0 && show.watched<tot) ? 0 : (show.watched===tot && tot>0 ? 1 : 2);
+        
+        if(cat !== lastCat) {
+            const sep = document.createElement('div');
+            sep.className = 'status-separator';
+            if(cat===0) { sep.innerHTML = "IN PROGRESS <span>// CURRENT_ACTIVITY</span>"; sep.classList.add('sep-watching'); }
+            if(cat===1) { sep.innerHTML = "COMPLETED <span>// ARCHIVE_MODE</span>"; sep.classList.add('sep-finished'); }
+            if(cat===2) { sep.innerHTML = "PLAN TO WATCH <span>// QUEUE_STATUS</span>"; sep.classList.add('sep-ptw'); }
+            frag.appendChild(sep);
+            lastCat = cat;
+        }
+
+        frag.appendChild(buildShowCard(show, i));
+    });
+    cont.appendChild(frag);
+
+    updateStatsHTML();
+    populateUpdateDropdowns();
+}
+
+function reRenderCard(i) {
+    const oldCard = document.getElementById(`show-${i}`);
+    if(oldCard) {
+        const newCard = buildShowCard(appState[i], i);
+        oldCard.replaceWith(newCard);
+    } else {
+        renderAll(); // Fallback if sorting changed order or element missing
+    }
+}
+
+/* --- INIT --- */
+loadFromServer();
+const savedBg = localStorage.getItem('episodeTrackerBg');
+if(savedBg) document.body.style.backgroundImage = `url(${savedBg})`;
+
+function exportData() {
+    const txt = stringifyState();
+    if (!txt) return alert("NO DATA FOUND");
+    const blob = new Blob([txt], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob); const a = document.createElement('a');
+    a.href = url; a.download = 'anime_list.txt'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+function importData(input) {
+    const file = input.files[0]; if (!file) return;
+    const reader = new FileReader(); reader.onload = function(e) {
+        const c = e.target.result; if (!c) return; 
+        parseAllData(c); renderAll(); saveToServer();
+    }; reader.readAsText(file);
+}
+function setBackground(input) {
+    const file = input.files[0]; if (!file) return;
+    const reader = new FileReader(); reader.onload = function(e) {
+        const bg = e.target.result; 
+        document.body.style.backgroundImage = `url(${bg})`;
+        localStorage.setItem('episodeTrackerBg', bg);
+        fetch('/save_bg', { method: 'POST', body: bg });
+    }; reader.readAsDataURL(file);
+}
+</script>
+</body>
+</html>
