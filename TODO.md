@@ -1,5 +1,9 @@
 ## GROUP TODOS:
-- List of Animes
+- Add Menu
+-- Add Menu as scrollable Window
+-- Delete Season Button
+-- Add Entry Button
+- List of Anime
 - Animes Creation
 - Edit Function
 
