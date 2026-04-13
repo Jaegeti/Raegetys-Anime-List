@@ -1,5 +1,5 @@
 "use strict";
-//import { Entry } from "../classes/Entry";
+Object.defineProperty(exports, "__esModule", { value: true });
 function openAddMenu() {
     const addMenuContainer = document.createElement("div");
     addMenuContainer.id = "addMenu"; // Div
@@ -60,6 +60,10 @@ function createSeasonContainer() {
     siteCinema.textContent = "Cinema";
     siteSelector.appendChild(siteCinema);
     seasonContainer.appendChild(siteSelector);
+    const deleteSeasonContainer = document.createElement("button");
+    deleteSeasonContainer.textContent = "[-]";
+    deleteSeasonContainer.onclick = () => deleteSeasonContainer.parentElement?.remove();
+    seasonContainer.appendChild(deleteSeasonContainer);
     return seasonContainer;
 }
 function changeButtonType(button) {

@@ -74,6 +74,11 @@ function createSeasonContainer() {
     siteSelector.appendChild(siteCinema);
     seasonContainer.appendChild(siteSelector);
 
+    const deleteSeasonContainer = document.createElement("button");
+    deleteSeasonContainer.textContent = "[-]";
+    deleteSeasonContainer.onclick = () => deleteSeasonContainer.parentElement?.remove();
+    seasonContainer.appendChild(deleteSeasonContainer);
+
     return seasonContainer;
 }
 
