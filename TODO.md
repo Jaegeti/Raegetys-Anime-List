@@ -1,10 +1,10 @@
 ## GROUP TODOS:
 - Add Menu
-  - Add Entry Button
+  - Make last Season unable to be deleted
+  - Order Seasons Feature
+  - Submit Button
 - List of Anime
-- Animes Creation
-- Edit Function
-- Make last Season unable to be deleted
+- Edit Entry Function
 
 ## JAEGETI's TODOS:
 - 

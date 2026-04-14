@@ -14,6 +14,7 @@ function openAddMenu() {
     const exitButton = document.createElement("button");
     exitButton.textContent = "X";
     exitButton.onclick = () => addMenuContainer.remove();
+    exitButton.id = "exitButton";
     header.appendChild(exitButton);
 
     addMenuContainer.appendChild(header);
@@ -23,15 +24,15 @@ function openAddMenu() {
     entryTitle.placeholder = "Enter Entry Title";
     addMenuContainer.appendChild(entryTitle);
 
-    const seasonContainerContainer = document.createElement("div");
-    seasonContainerContainer.id = "seasonContainerContainer";
-    seasonContainerContainer.appendChild(createSeasonContainer());
-    addMenuContainer.appendChild(seasonContainerContainer);
-
     const seasonContainerButton = document.createElement("button");
     seasonContainerButton.textContent = "[+]";
     seasonContainerButton.onclick = () => seasonContainerContainer.appendChild(createSeasonContainer());
     addMenuContainer.appendChild(seasonContainerButton);
+
+    const seasonContainerContainer = document.createElement("div");
+    seasonContainerContainer.id = "seasonContainerContainer";
+    seasonContainerContainer.appendChild(createSeasonContainer());
+    addMenuContainer.appendChild(seasonContainerContainer);
 
     document.body.appendChild(addMenuContainer);
 }
