@@ -3,9 +3,9 @@ export class Episode {
     completed: boolean;
     site: string;
 
-    constructor(type: "episode" | "movie" | "special" = "episode", completed: boolean = false, site: string = "crunchyroll") {
+    constructor(type: "episode" | "movie" | "special" = "episode", site: string = "crunchyroll") {
         this.type = type;
-        this.completed = completed;
+        this.completed = false;
         this.site = site;
     }
 }

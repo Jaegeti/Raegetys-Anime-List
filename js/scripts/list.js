@@ -1,5 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const Entry_1 = require("../classes/Entry");
+const entries = []; // doesn't get called, gotta fix later
 function openAddMenu() {
     const addMenuContainer = document.createElement("div");
     addMenuContainer.id = "addMenu"; // Div
@@ -9,12 +11,13 @@ function openAddMenu() {
     containerTitle.textContent = "Add Entry";
     header.appendChild(containerTitle);
     const exitButton = document.createElement("button");
+    exitButton.id = "exitButton";
     exitButton.textContent = "X";
     exitButton.onclick = () => addMenuContainer.remove();
-    exitButton.id = "exitButton";
     header.appendChild(exitButton);
     addMenuContainer.appendChild(header);
     const entryTitle = document.createElement("input");
+    entryTitle.id = "entryTitle";
     entryTitle.type = "text";
     entryTitle.placeholder = "Enter Entry Title";
     addMenuContainer.appendChild(entryTitle);
@@ -26,11 +29,20 @@ function openAddMenu() {
     seasonContainerContainer.id = "seasonContainerContainer";
     seasonContainerContainer.appendChild(createSeasonContainer());
     addMenuContainer.appendChild(seasonContainerContainer);
+    const submitButton = document.createElement("button");
+    submitButton.id = "submitButton";
+    submitButton.textContent = "Submit";
+    submitButton.onclick = () => submitEntry();
+    addMenuContainer.appendChild(submitButton);
     document.body.appendChild(addMenuContainer);
+    toggleDeleteSeasonButton();
 }
 function createSeasonContainer() {
+    if (document.getElementsByClassName('seasonContainer').length == 1) {
+        toggleDeleteSeasonButton();
+    }
     const seasonContainer = document.createElement("div");
-    seasonContainer.id = "seasonContainer"; // should be class but buggy ig uwu idk
+    seasonContainer.className = "seasonContainer";
     const seasonTitle = document.createElement("input");
     seasonTitle.type = "text";
     seasonTitle.placeholder = "Enter Season Title";
@@ -61,21 +73,45 @@ function createSeasonContainer() {
     siteCinema.textContent = "Cinema";
     siteSelector.appendChild(siteCinema);
     seasonContainer.appendChild(siteSelector);
-    const deleteSeasonContainer = document.createElement("button");
-    deleteSeasonContainer.textContent = "[-]";
-    deleteSeasonContainer.onclick = () => deleteSeasonContainer.parentElement?.remove();
-    seasonContainer.appendChild(deleteSeasonContainer);
+    const deleteSeasonButton = document.createElement("button");
+    deleteSeasonButton.className = "deleteSeasonButton";
+    deleteSeasonButton.textContent = "[-]";
+    deleteSeasonButton.onclick = () => deleteSeasonContainer(deleteSeasonButton);
+    seasonContainer.appendChild(deleteSeasonButton);
     return seasonContainer;
 }
+function deleteSeasonContainer(deleteSeasonButton) {
+    deleteSeasonButton.parentElement?.remove();
+    if (document.getElementsByClassName('seasonContainer').length == 1) {
+        toggleDeleteSeasonButton();
+    }
+}
+function toggleDeleteSeasonButton() {
+    const deleteSeasonButton = document.getElementsByClassName("deleteSeasonButton")[0];
+    deleteSeasonButton.disabled = !deleteSeasonButton.disabled;
+    deleteSeasonButton.style.display = (deleteSeasonButton.disabled) ? 'none' : '';
+}
 function changeButtonType(button) {
-    if (button.id == "episodeButton") {
-        button.id = "movieButton";
+    button.id = (button.id == "episodeButton") ? "movieButton" : (button.id == "movieButton") ? "specialButton" : "episodeButton";
+}
+function submitEntry() {
+    const entryTitleInput = document.getElementById("entryTitle");
+    const entryTitle = entryTitleInput?.value;
+    const seasonContainers = document.getElementById("seasonContainerContainer")?.childNodes;
+    let seasonsData = [];
+    for (let i = 0; i < seasonContainers?.length; i++) {
+        const seasonNodes = seasonContainers[i].childNodes;
+        const seasonTitle = (seasonNodes[0].value != "") ? seasonNodes[0].value : "Season " + String(i + 1);
+        const episodeCount = seasonNodes[1].valueAsNumber;
+        const type = seasonNodes[2].id.slice(0, -6);
+        const site = seasonNodes[3].value;
+        seasonsData.push([seasonTitle, episodeCount, type, site]);
     }
-    else if (button.id == "movieButton") {
-        button.id = "specialButton";
-    }
-    else if (button.id == "specialButton") {
-        button.id = "episodeButton";
-    }
+    // entries.push(new Entry(entryTitle, seasonsData));
+    const idk = new Entry_1.Entry(entryTitle, seasonsData);
+    closeAddMenu();
+}
+function closeAddMenu() {
+    document.getElementById("addMenu")?.remove();
 }
 window.openAddMenu = openAddMenu; // Make function globally accessible for onclick handler

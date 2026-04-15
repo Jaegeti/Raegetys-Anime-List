@@ -1,8 +1,8 @@
 ## GROUP TODOS:
 - Add Menu
-  - Make last Season unable to be deleted
+  - Fix Error with Entries
   - Order Seasons Feature
-  - Submit Button
+  - Submit Button aligned at bottom
 - Add Started/Finished Watching Dates to Season Class
 - List of Anime
 - Edit Entry Function

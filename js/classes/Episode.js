@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Episode = void 0;
 class Episode {
-    constructor(type = "episode", completed = false, site = "crunchyroll") {
+    constructor(type = "episode", site = "crunchyroll") {
         this.type = type;
-        this.completed = completed;
+        this.completed = false;
         this.site = site;
     }
 }

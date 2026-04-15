@@ -8,8 +8,11 @@ class Season {
         this.title = title;
         this.rating = undefined;
         for (let i = 0; i < episodeCount; i++) {
-            this.episodes.push(new Episode_1.Episode(type, false, site));
+            this.episodes.push(this.createEpisode(type, site));
         }
+    }
+    createEpisode(type = "episode", site = "crunchyroll") {
+        return new Episode_1.Episode(type, site);
     }
 }
 exports.Season = Season;
