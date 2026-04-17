@@ -3,6 +3,18 @@ export let editMode = false;
 function switchMode(button) {
     editMode = !editMode;
     button.style.backgroundColor = (editMode) ? "green" : "initial";
+    if (editMode) {
+        const seasonTitles = document.getElementsByClassName("seasonTitle");
+        for (let i = 0; i < seasonTitles.length; i++) {
+            changeH3toInput(seasonTitles[i]);
+        }
+    }
+    else {
+        const seasonTitles = document.getElementsByClassName("seasonTitle");
+        for (let i = 0; i < seasonTitles.length; i++) {
+            changeInputtoH3(seasonTitles[i]);
+        }
+    }
 }
 function loadEntries() {
     return;
@@ -66,5 +78,18 @@ function switchEpisodeType(episode, episodeButton) {
     episodeButton.id = (episodeButton.id == "episodeButtonEpisode") ? "episodeButtonMovie" : (episodeButton.id == "episodeButtonMovie") ? "episodeButtonSpecial" : "episodeButtonEpisode";
 }
 export function removeEntry(entry) {
+}
+function changeH3toInput(h3Element) {
+    const inputElement = document.createElement("input");
+    inputElement.type = "text";
+    inputElement.className = h3Element.className;
+    inputElement.value = h3Element.textContent;
+    h3Element.replaceWith(inputElement);
+}
+function changeInputtoH3(inputElement) {
+    const h3Element = document.createElement("h3");
+    h3Element.className = inputElement.className;
+    h3Element.textContent = inputElement.value;
+    inputElement.replaceWith(h3Element);
 }
 window.switchMode = switchMode;

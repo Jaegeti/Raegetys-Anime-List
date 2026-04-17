@@ -8,6 +8,18 @@ export let editMode = false;
 function switchMode(button: HTMLButtonElement): void {
     editMode = !editMode;
     button.style.backgroundColor = (editMode) ? "green" : "initial";
+    
+    if (editMode) { 
+        const seasonTitles = document.getElementsByClassName("seasonTitle") as HTMLCollectionOf<HTMLHeadingElement>;
+        for (let i = 0; i < seasonTitles.length; i++) {
+            changeH3toInput(seasonTitles[i]);
+        }
+    } else {
+        const seasonTitles = document.getElementsByClassName("seasonTitle") as HTMLCollectionOf<HTMLInputElement>;
+        for (let i = 0; i < seasonTitles.length; i++) {
+            changeInputtoH3(seasonTitles[i]);
+        }
+    }
 }
 
 function loadEntries(): void {      // to load entries from a file
@@ -91,6 +103,23 @@ function switchEpisodeType(episode: Episode, episodeButton: HTMLButtonElement): 
 
 export function removeEntry(entry: Entry): void {
 
+}
+
+function changeH3toInput(h3Element: HTMLHeadingElement) {
+    const inputElement = document.createElement("input");
+    inputElement.type = "text";
+    inputElement.className = h3Element.className;
+    inputElement.value = h3Element.textContent;
+
+    h3Element.replaceWith(inputElement);
+}
+
+function changeInputtoH3(inputElement: HTMLInputElement) {
+    const h3Element = document.createElement("h3");
+    h3Element.className = inputElement.className;
+    h3Element.textContent = inputElement.value;
+
+    inputElement.replaceWith(h3Element);
 }
 
 (window as any).switchMode = switchMode;
