@@ -5,12 +5,17 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <title>List Name</title> <!-- List name chosen by user -->
         <link rel="stylesheet" href="../css/list.css">
-        <script src="../js/scripts/list.js"></script>
+        <script type="module" src="../js/scripts/addMenu.js"></script>
     </head>
     <body>
-        <h1 style="margin-bottom: 0px;">List Name</h1> <!-- List name chosen by user -->
-        <p style="margin-top: 0px;">List Description</p> <!-- List description chosen by user -->
-        <div id="stats_creation">
+        <header>
+            <div id="top">
+                <h1 style="margin-bottom: 0px;">List Name</h1> <!-- List name chosen by user -->
+                <button id="editModeButton" onclick="if(document.getElementById('switchMode') == null){switchMode(this);}">🖊</button>
+            </div>
+            <p style="margin-top: 0px;">List Description</p> <!-- List description chosen by user -->
+        </header>
+        <div id="statsCreation">
             <p>Stats: 21 / 72 SHOWS | 985 / 4853 EPS [20.3%]</p> <!-- Stats (random temp stats) -->
             <button style="margin-left: 15pt;" onclick="if(document.getElementById('addMenu') == null){openAddMenu();}">Add [+]</button>
         </div>

@@ -1,18 +1,15 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Season = void 0;
-const Episode_1 = require("./Episode");
-class Season {
+import { Episode } from './Episode.js';
+export class Season {
     constructor(title = "New Season", episodeCount = 12, site = "crunchyroll", type = "episode") {
         this.episodes = [];
         this.title = title;
-        this.rating = undefined;
         for (let i = 0; i < episodeCount; i++) {
-            this.episodes.push(this.createEpisode(type, site));
+            this.episodes.push(this.createEpisode(type, site, i + 1));
         }
+        this.site = site;
+        this.rating = undefined;
     }
-    createEpisode(type = "episode", site = "crunchyroll") {
-        return new Episode_1.Episode(type, site);
+    createEpisode(type = "episode", site = "crunchyroll", text = "") {
+        return new Episode(type, site, text);
     }
 }
-exports.Season = Season;

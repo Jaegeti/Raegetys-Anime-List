@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Entry = void 0;
-const Season_1 = require("./Season");
-class Entry {
+import { Season } from "./Season.js";
+export class Entry {
     constructor(mainTitle = "New Entry", seasonsData = []) {
         this.seasons = [];
         this.totalEpisodes = {
@@ -31,7 +28,6 @@ class Entry {
         this.rewatched = 0;
     }
     createSeason(title = "New Season", episodeCount = 12, site = "crunchyroll", type = "episode") {
-        return new Season_1.Season(title, episodeCount, site, type);
+        return new Season(title, episodeCount, site, type);
     }
 }
-exports.Entry = Entry;

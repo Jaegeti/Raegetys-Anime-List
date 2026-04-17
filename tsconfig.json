@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "commonjs",
-    "outDir": "./js",  // Output directory for .js files
-    "rootDir": "./ts", // Input directory for .ts files
+    "module": "ES2020",             // Forces modern browser import/export syntax
+    "moduleResolution": "bundler",  // The best setting for frontend development
+    "outDir": "./js",  
+    "rootDir": "./ts", 
     "strict": true
   },
   "include": ["ts/**/*.ts"]
