@@ -100,10 +100,10 @@ function submitEntry() {
     for (let i = 0; i < seasonContainers?.length; i++) {
         const seasonNodes = seasonContainers[i].childNodes;
         const seasonTitle = (seasonNodes[0].value != "") ? seasonNodes[0].value : "Season " + String(i + 1);
-        const episodeCount = seasonNodes[1].valueAsNumber;
         const type = seasonNodes[2].id.slice(7, -6);
         const site = seasonNodes[3].value;
-        seasonsData.push([seasonTitle, episodeCount, site, type]);
+        const episodeCount = seasonNodes[1].valueAsNumber;
+        seasonsData.push([seasonTitle, site, type, episodeCount]);
     }
     createEntry(new Entry(entryTitle, seasonsData));
     closeAddMenu();

@@ -1,13 +1,22 @@
+import { List } from "../classes/List.js";
 import { Entry } from "../classes/Entry.js";
 import { Season } from "../classes/Season.js";
 import { Episode } from "../classes/Episode.js";
+import { lists } from "./user.js"
+import { listIndex } from "./user.js"
+import { saveData } from "./data.js";
 
-const entries: Entry[] = [];
 export let editMode = false;
+
+console.log(listIndex);
+
+const currentUrl = window.location.pathname;
+const urlIdString = currentUrl.split('/').pop();
+export const currentListId = Number(urlIdString);
 
 function switchMode(button: HTMLButtonElement): void {
     editMode = !editMode;
-    button.style.backgroundColor = (editMode) ? "green" : "initial";
+    button.style.backgroundColor = (editMode) ? "green" : "buttonface";
     
     if (editMode) { 
         const seasonTitles = document.getElementsByClassName("seasonTitle") as HTMLCollectionOf<HTMLHeadingElement>;
@@ -22,12 +31,9 @@ function switchMode(button: HTMLButtonElement): void {
     }
 }
 
-function loadEntries(): void {      // to load entries from a file
-    return;
-}
-
 export function createEntry(entry: Entry): void {
-    entries.push(entry);
+    //lists[listIndex].entries.push(entry);
+    lists[currentListId].entries.push(entry); // +
 
     const entryContainer = document.createElement("div");
     entryContainer.id = entry.mainTitle;
@@ -90,10 +96,12 @@ export function createEntry(entry: Entry): void {
     }
     
     document.body.appendChild(entryContainer);
+
+    saveData(lists);
 }
 
 function toggleEpisodeCompleted(episode: Episode, episodeButton: HTMLButtonElement): void {
-    episodeButton.style.backgroundColor = (episode.toggleCompleted()) ? "green" : "initial"
+    episodeButton.style.backgroundColor = (episode.toggleCompleted()) ? "green" : "buttonface"
 }
 
 function switchEpisodeType(episode: Episode, episodeButton: HTMLButtonElement): void {
@@ -120,6 +128,10 @@ function changeInputtoH3(inputElement: HTMLInputElement) {
     h3Element.textContent = inputElement.value;
 
     inputElement.replaceWith(h3Element);
+}
+
+function loadData(): void {      // to load entries from a file
+    return;
 }
 
 (window as any).switchMode = switchMode;

@@ -7,5 +7,5 @@
     "rootDir": "./ts", 
     "strict": true
   },
-  "include": ["ts/**/*.ts"]
+  "include": ["ts/**/*.ts", "server.ts"]
 }

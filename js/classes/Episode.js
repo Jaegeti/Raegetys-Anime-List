@@ -1,9 +1,9 @@
 export class Episode {
-    constructor(type = "episode", site = "crunchyroll", text = "") {
-        this.type = type;
-        this.completed = false;
-        this.site = site;
+    constructor(text = "", type = "episode", site = "crunchyroll") {
         this.text = text;
+        this.completed = false;
+        this.type = type;
+        this.site = site;
     }
     toggleCompleted() {
         this.completed = !this.completed;

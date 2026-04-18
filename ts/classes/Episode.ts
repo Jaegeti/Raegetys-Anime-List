@@ -1,14 +1,14 @@
 export class Episode {
-    type: "episode" | "movie" | "special";
-    completed: boolean;
-    site: string;
     text: number | string;
+    completed: boolean;
+    type: "episode" | "movie" | "special";
+    site: string;
 
-    constructor(type: "episode" | "movie" | "special" = "episode", site: string = "crunchyroll", text: number | string = "") {
-        this.type = type;
-        this.completed = false;
-        this.site = site;
+    constructor(text: number | string = "", type: "episode" | "movie" | "special" = "episode", site: string = "crunchyroll") {
         this.text = text;
+        this.completed = false;
+        this.type = type;
+        this.site = site;
     }
 
     toggleCompleted(): boolean {

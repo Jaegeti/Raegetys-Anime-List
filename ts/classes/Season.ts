@@ -2,21 +2,20 @@ import { Episode } from './Episode.js';
 
 export class Season {
     title: string;
-    episodes: Episode[] = [];
     site: string;
     rating: number | undefined;
+    episodes: Episode[] = [];
 
-    constructor(title: string = "New Season", episodeCount: number = 12, site: string = "crunchyroll", type: "episode"|"movie"|"special" = "episode") {
+    constructor(title: string = "New Season", site: string = "crunchyroll", type: "episode"|"movie"|"special" = "episode", episodeCount: number = 12) {
         this.title = title;
-        
-        for (let i = 0; i < episodeCount; i++) {
-            this.episodes.push(this.createEpisode(type, site, i+1));
-        }
         this.site = site;
         this.rating = undefined;
+        for (let i = 0; i < episodeCount; i++) {
+            this.episodes.push(this.createEpisode(i+1, type, site));
+        }
     }
 
-    createEpisode(type: "episode" | "movie" | "special" = "episode", site: string = "crunchyroll", text: number | string = ""): Episode {
-    return new Episode(type, site, text);
+    createEpisode(text: number | string = "", type: "episode" | "movie" | "special" = "episode", site: string = "crunchyroll"): Episode {
+        return new Episode(text, type, site);
     }
 }

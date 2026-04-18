@@ -1,15 +1,15 @@
 import { Episode } from './Episode.js';
 export class Season {
-    constructor(title = "New Season", episodeCount = 12, site = "crunchyroll", type = "episode") {
+    constructor(title = "New Season", site = "crunchyroll", type = "episode", episodeCount = 12) {
         this.episodes = [];
         this.title = title;
-        for (let i = 0; i < episodeCount; i++) {
-            this.episodes.push(this.createEpisode(type, site, i + 1));
-        }
         this.site = site;
         this.rating = undefined;
+        for (let i = 0; i < episodeCount; i++) {
+            this.episodes.push(this.createEpisode(i + 1, type, site));
+        }
     }
-    createEpisode(type = "episode", site = "crunchyroll", text = "") {
-        return new Episode(type, site, text);
+    createEpisode(text = "", type = "episode", site = "crunchyroll") {
+        return new Episode(text, type, site);
     }
 }

@@ -1,8 +1,13 @@
-const entries = [];
+import { lists } from "./user.js";
+import { listIndex } from "./user.js";
 export let editMode = false;
+console.log(listIndex);
+const currentUrl = window.location.pathname;
+const urlIdString = currentUrl.split('/').pop();
+export const currentListId = Number(urlIdString);
 function switchMode(button) {
     editMode = !editMode;
-    button.style.backgroundColor = (editMode) ? "green" : "initial";
+    button.style.backgroundColor = (editMode) ? "green" : "buttonface";
     if (editMode) {
         const seasonTitles = document.getElementsByClassName("seasonTitle");
         for (let i = 0; i < seasonTitles.length; i++) {
@@ -16,11 +21,10 @@ function switchMode(button) {
         }
     }
 }
-function loadEntries() {
-    return;
-}
 export function createEntry(entry) {
-    entries.push(entry);
+    //lists[listIndex].entries.push(entry);
+    console.log(lists);
+    lists[currentListId].entries.push(entry); // +
     const entryContainer = document.createElement("div");
     entryContainer.id = entry.mainTitle;
     entryContainer.className = "entryContainer";
@@ -71,7 +75,7 @@ export function createEntry(entry) {
     document.body.appendChild(entryContainer);
 }
 function toggleEpisodeCompleted(episode, episodeButton) {
-    episodeButton.style.backgroundColor = (episode.toggleCompleted()) ? "green" : "initial";
+    episodeButton.style.backgroundColor = (episode.toggleCompleted()) ? "green" : "buttonface";
 }
 function switchEpisodeType(episode, episodeButton) {
     episode.switchType();
@@ -91,5 +95,32 @@ function changeInputtoH3(inputElement) {
     h3Element.className = inputElement.className;
     h3Element.textContent = inputElement.value;
     inputElement.replaceWith(h3Element);
+}
+function saveData(lists) {
+    const dataDict = {};
+    for (let i = 0; i < lists.length; i++) {
+        dataDict[i][lists[i].listTitle] = lists[i].listTitle;
+        for (let j = 0; j < lists[i].entries.length; j++) {
+            dataDict[i][j][lists[i].entries[j].mainTitle] = lists[i].entries[j].mainTitle;
+            dataDict[i][j]["status"] = lists[i].entries[j].status;
+            dataDict[i][j]["rewatched"] = lists[i].entries[j].rewatched;
+            dataDict[i][j]["totalEpisodes"] = lists[i].entries[j].totalEpisodes;
+            dataDict[i][j]["progress"] = lists[i].entries[j].progress;
+            for (let k = 0; k < lists[i].entries[j].seasons.length; k++) {
+                dataDict[i][j]["seasons"][k]["title"] = lists[i].entries[j].seasons[k].title;
+                dataDict[i][j]["seasons"][k]["site"] = lists[i].entries[j].seasons[k].site;
+                dataDict[i][j]["seasons"][k]["rating"] = lists[i].entries[j].seasons[k].rating;
+                for (let l = 0; l < lists[i].entries[j].seasons[k].episodes.length; l++) {
+                    dataDict[i][j]["seasons"][k]["episodes"][l]["text"] = lists[i].entries[j].seasons[k].episodes[l].text;
+                    dataDict[i][j]["seasons"][k]["episodes"][l]["completed"] = lists[i].entries[j].seasons[k].episodes[l].completed;
+                    dataDict[i][j]["seasons"][k]["episodes"][l]["type"] = lists[i].entries[j].seasons[k].episodes[l].type;
+                    dataDict[i][j]["seasons"][k]["episodes"][l]["site"] = lists[i].entries[j].seasons[k].episodes[l].site;
+                }
+            }
+        }
+    }
+}
+function loadData() {
+    return;
 }
 window.switchMode = switchMode;

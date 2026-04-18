@@ -2,8 +2,8 @@ import { Season } from "./Season.js";
 
 export class Entry {
     mainTitle: string;
-    seasons: Season[] = [];
     status: "ptw" | "watching" | "completed" | "dropped" | "on hold" | "rewatching";
+    rewatched: number;
     totalEpisodes: { [id: string]: number; } = {
         "total": 0,
         "episodes": 0,
@@ -16,32 +16,29 @@ export class Entry {
         "movies": 0,
         "specials": 0
     };
-    rewatched: number;
+    seasons: Season[] = [];
  
     constructor(mainTitle: string = "New Entry", seasonsData: (string|number)[][] = []) {
         this.mainTitle = mainTitle;
-
-        for (let i = 0; i < seasonsData.length; i++) {
-            this.seasons.push(
-                this.createSeason(seasonsData[i][0] as string,
-                                  seasonsData[i][1] as number,
-                                  seasonsData[i][2] as string,
-                                  seasonsData[i][3] as "episode"|"movie"|"special")
-            );
-        }
-
         this.status = "ptw";
+        this.rewatched = 0;
         for (let i = 0; i < this.seasons.length; i++) {
             for (let j = 0; j < this.seasons[i].episodes.length; j++) {
                 this.totalEpisodes[this.seasons[i].episodes[j].type] += 1;
                 this.totalEpisodes["total"] += 1;
             }
         }
-        this.rewatched = 0;
-        
+        for (let i = 0; i < seasonsData.length; i++) {
+            this.seasons.push(
+                this.createSeason(seasonsData[i][0] as string,
+                                  seasonsData[i][1] as string,
+                                  seasonsData[i][2] as "episode"|"movie"|"special",
+                                  seasonsData[i][3] as number)
+            );
+        }
     }
 
-    createSeason(title: string = "New Season", episodeCount: number = 12, site: string = "crunchyroll", type: "episode"|"movie"|"special" = "episode"): Season {
-        return new Season(title, episodeCount, site, type);
+    createSeason(title: string = "New Season", site: string = "crunchyroll", type: "episode"|"movie"|"special" = "episode", episodeCount: number = 12): Season {
+        return new Season(title, site, type, episodeCount);
     }
 }
