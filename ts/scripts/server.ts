@@ -1,11 +1,13 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import { loadData } from './data.js';
-import { lists } from "./user.js"
+import { lists } from "./user.js";
+import { saveData } from './data.js';
 
 const app = express();
 const port = 5500;
 
+app.use(express.json());
 app.use('/css', express.static(path.join(__dirname, '../../css')));
 app.use('/js', express.static(path.join(__dirname, '../../js')));
 
@@ -17,9 +19,10 @@ app.get('/', (request: Request, response: Response) => {
     response.sendFile(path.join(`${__dirname}/../../html/`, 'user.html')); 
 });
 
-app.get('/List/:id', (request: Request, response: Response) => {
+app.get('/list/:id', (request: Request, response: Response) => {
     let listId = request.params.id as string;
 
+    console.log("loaded!");
     let listData = loadData(); //listData[listId];
 
     if (listData) {
@@ -30,6 +33,17 @@ app.get('/List/:id', (request: Request, response: Response) => {
     }
 });
 
+app.get('/api/get-lists', (request: Request, response: Response) => {
+    const loadedData = loadData();
+    response.json(loadedData);
+});
+
 app.listen(port, () => {
     console.log(`Server is alive! Go to http://localhost:${port}/user.html`);
-})
+});
+
+app.post('/api/save-lists', (request: Request, response: Response) => {
+    const listsDataFromFrontend = request.body;
+    saveData(listsDataFromFrontend);
+    response.send("Data saved successfully!");
+});

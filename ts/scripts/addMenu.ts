@@ -128,7 +128,7 @@ function submitEntry(): void {
         const seasonNodes = seasonContainers[i].childNodes as NodeListOf<HTMLElement>;
 
         const seasonTitle = ((seasonNodes[0] as HTMLInputElement).value != "") ? (seasonNodes[0] as HTMLInputElement).value : "Season "+String(i+1);
-        const type = seasonNodes[2].id.slice(7,-6);
+        const type = seasonNodes[2].id.slice(7,-6).toLowerCase();
         const site = (seasonNodes[3] as HTMLSelectElement).value;
         const episodeCount = (seasonNodes[1] as HTMLInputElement).valueAsNumber;
 

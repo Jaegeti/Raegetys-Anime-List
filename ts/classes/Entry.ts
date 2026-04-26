@@ -22,12 +22,6 @@ export class Entry {
         this.mainTitle = mainTitle;
         this.status = "ptw";
         this.rewatched = 0;
-        for (let i = 0; i < this.seasons.length; i++) {
-            for (let j = 0; j < this.seasons[i].episodes.length; j++) {
-                this.totalEpisodes[this.seasons[i].episodes[j].type] += 1;
-                this.totalEpisodes["total"] += 1;
-            }
-        }
         for (let i = 0; i < seasonsData.length; i++) {
             this.seasons.push(
                 this.createSeason(seasonsData[i][0] as string,
@@ -36,9 +30,23 @@ export class Entry {
                                   seasonsData[i][3] as number)
             );
         }
+        for (let i = 0; i < this.seasons.length; i++) {
+            for (let j = 0; j < this.seasons[i].episodes.length; j++) {
+                this.totalEpisodes[this.seasons[i].episodes[j].type+"s"] += 1;
+                this.totalEpisodes["total"] += 1;
+            }
+        }
     }
 
     createSeason(title: string = "New Season", site: string = "crunchyroll", type: "episode"|"movie"|"special" = "episode", episodeCount: number = 12): Season {
         return new Season(title, site, type, episodeCount);
+    }
+
+    updateSeasonLength() {
+        
+    }
+
+    updateProgress() {
+
     }
 }

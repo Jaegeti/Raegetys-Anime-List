@@ -4,7 +4,7 @@ import { Season } from "../classes/Season.js";
 import { Episode } from "../classes/Episode.js";
 import { lists } from "./user.js"
 import { listIndex } from "./user.js"
-import { saveData } from "./data.js";
+import { fetchData } from "./user.js";
 
 export let editMode = false;
 
@@ -13,6 +13,28 @@ console.log(listIndex);
 const currentUrl = window.location.pathname;
 const urlIdString = currentUrl.split('/').pop();
 export const currentListId = Number(urlIdString);
+
+async function initializeListPage() {   // Delete when createListsFromDict is done
+    try {
+        const response = await fetch('/api/get-lists');
+        if (!response.ok) throw new Error("Failed to fetch data");
+
+        const dataDict = await response.json();
+
+        if (dataDict[currentListId]) {
+            lists[currentListId] = {
+                listTitle: dataDict[currentListId][Object.keys(dataDict[currentListId])[0]],
+                entries: []
+            } as any
+        } else {
+            console.error("The list ID from the URL doesn't exist in the database!");
+        }
+    } catch (error) {
+        console.error("Error loading initial list data:", error);
+    }
+}
+
+initializeListPage();
 
 function switchMode(button: HTMLButtonElement): void {
     editMode = !editMode;
@@ -97,7 +119,7 @@ export function createEntry(entry: Entry): void {
     
     document.body.appendChild(entryContainer);
 
-    saveData(lists);
+    fetchData();
 }
 
 function toggleEpisodeCompleted(episode: Episode, episodeButton: HTMLButtonElement): void {

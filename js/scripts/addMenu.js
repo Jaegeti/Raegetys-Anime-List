@@ -100,7 +100,7 @@ function submitEntry() {
     for (let i = 0; i < seasonContainers?.length; i++) {
         const seasonNodes = seasonContainers[i].childNodes;
         const seasonTitle = (seasonNodes[0].value != "") ? seasonNodes[0].value : "Season " + String(i + 1);
-        const type = seasonNodes[2].id.slice(7, -6);
+        const type = seasonNodes[2].id.slice(7, -6).toLowerCase();
         const site = seasonNodes[3].value;
         const episodeCount = seasonNodes[1].valueAsNumber;
         seasonsData.push([seasonTitle, site, type, episodeCount]);

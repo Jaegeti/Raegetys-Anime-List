@@ -26,6 +26,8 @@ function createList(listTitle: string = "New List"): void {
 
     referenceToListSite.appendChild(listButton);
     document.getElementById("listContainer")?.appendChild(referenceToListSite);
+
+    fetchData();
 }
 
 function openList(openListButton: HTMLButtonElement): void {
@@ -36,6 +38,18 @@ function loadUser() {
     const listContainer = document.createElement("div");
     listContainer.id = "listContainer";
     document.body.appendChild(listContainer);
+}
+
+export function fetchData() {
+    fetch('/api/save-lists', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(lists)
+    })
+    .then(response => console.log("Successfully sent data to server!"))
+    .catch(error => console.error("Error sending data:", error));
 }
 
 if (typeof window !== 'undefined') {

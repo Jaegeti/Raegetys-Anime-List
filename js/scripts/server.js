@@ -1,40 +1,39 @@
 import express from 'express';
 import path from 'path';
+import { loadData } from './data.js';
+import { saveData } from './data.js';
 const app = express();
 const port = 5500;
-app.use('/ccs', express.static(path.join(__dirname, 'css')));
-app.use('/js', express.static(path.join(__dirname, 'js')));
-app.get('/List/:id', (request, response) => {
-    let listId = request.params.id;
-    response.sendFile(path.join(__dirname, 'list.html'));
+app.use(express.json());
+app.use('/css', express.static(path.join(__dirname, '../../css')));
+app.use('/js', express.static(path.join(__dirname, '../../js')));
+app.get('/user.html', (request, response) => {
+    response.sendFile(path.join(`${__dirname}/../../html/`, 'user.html'));
 });
-/*
-interface AnimeEntry {
-    title: string;
-    score: number;
-}
-
-const animeDatabase: Record<string, AnimeEntry> = {
-    "5114": { title: "Fullmetal Alchemist: Brotherhood", score: 9.1 },
-    "21": { title: "One Piece", score: 8.7 },
-    "11061": { title: "Hunter x Hunter", score: 9.0 }
-};
-
-app.get('/List/:id', (request: Request, response: Response) => {
-    let listId = request.params.id as string;
-
-    let listData = animeDatabase[listId];
-
+app.get('/', (request, response) => {
+    response.sendFile(path.join(`${__dirname}/../../html/`, 'user.html'));
+});
+app.get('/list/:id', (request, response) => {
+    let listId = request.params.id;
+    console.log("loaded!");
+    let listData = loadData(); //listData[listId];
     if (listData) {
-        response.send(`
-            <h1>${listData.title}</h1>
-            <p>MAL Score: ${listData.score}</p>
-        `);
-    } else {
-        response.status(404).send("<h1>404: Anime Not Found!</h1>");
+        response.sendFile(path.join(__dirname, '../../html/', 'list.html'));
+    }
+    else {
+        console.log(listData);
+        response.status(404).send("<h1>404: List Not Found!</h1>");
     }
 });
-*/
+app.get('/api/get-lists', (request, response) => {
+    const loadedData = loadData();
+    response.json(loadedData);
+});
 app.listen(port, () => {
     console.log(`Server is alive! Go to http://localhost:${port}/user.html`);
+});
+app.post('/api/save-lists', (request, response) => {
+    const listsDataFromFrontend = request.body;
+    saveData(listsDataFromFrontend);
+    response.send("Data saved successfully!");
 });

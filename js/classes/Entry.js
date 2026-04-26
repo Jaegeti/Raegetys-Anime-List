@@ -17,17 +17,21 @@ export class Entry {
         this.mainTitle = mainTitle;
         this.status = "ptw";
         this.rewatched = 0;
-        for (let i = 0; i < this.seasons.length; i++) {
-            for (let j = 0; j < this.seasons[i].episodes.length; j++) {
-                this.totalEpisodes[this.seasons[i].episodes[j].type] += 1;
-                this.totalEpisodes["total"] += 1;
-            }
-        }
         for (let i = 0; i < seasonsData.length; i++) {
             this.seasons.push(this.createSeason(seasonsData[i][0], seasonsData[i][1], seasonsData[i][2], seasonsData[i][3]));
+        }
+        for (let i = 0; i < this.seasons.length; i++) {
+            for (let j = 0; j < this.seasons[i].episodes.length; j++) {
+                this.totalEpisodes[this.seasons[i].episodes[j].type + "s"] += 1;
+                this.totalEpisodes["total"] += 1;
+            }
         }
     }
     createSeason(title = "New Season", site = "crunchyroll", type = "episode", episodeCount = 12) {
         return new Season(title, site, type, episodeCount);
+    }
+    updateSeasonLength() {
+    }
+    updateProgress() {
     }
 }

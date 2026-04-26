@@ -1,1 +1,104 @@
-{}
+{
+  "0": {
+    "listTitle": "12th List",
+    "entries": {
+      "0": {
+        "entryTitle": "Arknights",
+        "status": "ptw",
+        "rewatched": 0,
+        "totalEpisodes": {
+          "total": 12,
+          "episodes": 12,
+          "movies": 0,
+          "specials": 0
+        },
+        "progress": {
+          "total": 0,
+          "episodes": 0,
+          "movies": 0,
+          "specials": 0
+        },
+        "seasons": {
+          "0": {
+            "seasonTitle": "S1",
+            "site": "Crunchyroll",
+            "episodes": {
+              "0": {
+                "text": 1,
+                "completed": false,
+                "type": "episode",
+                "site": "Crunchyroll"
+              },
+              "1": {
+                "text": 2,
+                "completed": false,
+                "type": "episode",
+                "site": "Crunchyroll"
+              },
+              "2": {
+                "text": 3,
+                "completed": false,
+                "type": "episode",
+                "site": "Crunchyroll"
+              },
+              "3": {
+                "text": 4,
+                "completed": false,
+                "type": "episode",
+                "site": "Crunchyroll"
+              },
+              "4": {
+                "text": 5,
+                "completed": false,
+                "type": "episode",
+                "site": "Crunchyroll"
+              },
+              "5": {
+                "text": 6,
+                "completed": false,
+                "type": "episode",
+                "site": "Crunchyroll"
+              },
+              "6": {
+                "text": 7,
+                "completed": false,
+                "type": "episode",
+                "site": "Crunchyroll"
+              },
+              "7": {
+                "text": 8,
+                "completed": false,
+                "type": "episode",
+                "site": "Crunchyroll"
+              },
+              "8": {
+                "text": 9,
+                "completed": false,
+                "type": "episode",
+                "site": "Crunchyroll"
+              },
+              "9": {
+                "text": 10,
+                "completed": false,
+                "type": "episode",
+                "site": "Crunchyroll"
+              },
+              "10": {
+                "text": 11,
+                "completed": false,
+                "type": "episode",
+                "site": "Crunchyroll"
+              },
+              "11": {
+                "text": 12,
+                "completed": false,
+                "type": "episode",
+                "site": "Crunchyroll"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

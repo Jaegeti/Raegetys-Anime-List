@@ -1,10 +1,32 @@
 import { lists } from "./user.js";
 import { listIndex } from "./user.js";
+import { fetchData } from "./user.js";
 export let editMode = false;
 console.log(listIndex);
 const currentUrl = window.location.pathname;
 const urlIdString = currentUrl.split('/').pop();
 export const currentListId = Number(urlIdString);
+async function initializeListPage() {
+    try {
+        const response = await fetch('/api/get-lists');
+        if (!response.ok)
+            throw new Error("Failed to fetch data");
+        const dataDict = await response.json();
+        if (dataDict[currentListId]) {
+            lists[currentListId] = {
+                listTitle: dataDict[currentListId][Object.keys(dataDict[currentListId])[0]],
+                entries: []
+            };
+        }
+        else {
+            console.error("The list ID from the URL doesn't exist in the database!");
+        }
+    }
+    catch (error) {
+        console.error("Error loading initial list data:", error);
+    }
+}
+initializeListPage();
 function switchMode(button) {
     editMode = !editMode;
     button.style.backgroundColor = (editMode) ? "green" : "buttonface";
@@ -23,7 +45,6 @@ function switchMode(button) {
 }
 export function createEntry(entry) {
     //lists[listIndex].entries.push(entry);
-    console.log(lists);
     lists[currentListId].entries.push(entry); // +
     const entryContainer = document.createElement("div");
     entryContainer.id = entry.mainTitle;
@@ -73,6 +94,7 @@ export function createEntry(entry) {
         entryContainer.appendChild(seasonContainer);
     }
     document.body.appendChild(entryContainer);
+    fetchData();
 }
 function toggleEpisodeCompleted(episode, episodeButton) {
     episodeButton.style.backgroundColor = (episode.toggleCompleted()) ? "green" : "buttonface";
@@ -95,30 +117,6 @@ function changeInputtoH3(inputElement) {
     h3Element.className = inputElement.className;
     h3Element.textContent = inputElement.value;
     inputElement.replaceWith(h3Element);
-}
-function saveData(lists) {
-    const dataDict = {};
-    for (let i = 0; i < lists.length; i++) {
-        dataDict[i][lists[i].listTitle] = lists[i].listTitle;
-        for (let j = 0; j < lists[i].entries.length; j++) {
-            dataDict[i][j][lists[i].entries[j].mainTitle] = lists[i].entries[j].mainTitle;
-            dataDict[i][j]["status"] = lists[i].entries[j].status;
-            dataDict[i][j]["rewatched"] = lists[i].entries[j].rewatched;
-            dataDict[i][j]["totalEpisodes"] = lists[i].entries[j].totalEpisodes;
-            dataDict[i][j]["progress"] = lists[i].entries[j].progress;
-            for (let k = 0; k < lists[i].entries[j].seasons.length; k++) {
-                dataDict[i][j]["seasons"][k]["title"] = lists[i].entries[j].seasons[k].title;
-                dataDict[i][j]["seasons"][k]["site"] = lists[i].entries[j].seasons[k].site;
-                dataDict[i][j]["seasons"][k]["rating"] = lists[i].entries[j].seasons[k].rating;
-                for (let l = 0; l < lists[i].entries[j].seasons[k].episodes.length; l++) {
-                    dataDict[i][j]["seasons"][k]["episodes"][l]["text"] = lists[i].entries[j].seasons[k].episodes[l].text;
-                    dataDict[i][j]["seasons"][k]["episodes"][l]["completed"] = lists[i].entries[j].seasons[k].episodes[l].completed;
-                    dataDict[i][j]["seasons"][k]["episodes"][l]["type"] = lists[i].entries[j].seasons[k].episodes[l].type;
-                    dataDict[i][j]["seasons"][k]["episodes"][l]["site"] = lists[i].entries[j].seasons[k].episodes[l].site;
-                }
-            }
-        }
-    }
 }
 function loadData() {
     return;
